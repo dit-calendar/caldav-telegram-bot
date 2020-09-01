@@ -33,7 +33,9 @@ dependencies {
     val ktBotVersion = "1.3.4"
     val exposedVersion = "0.25.1"
     val postgresqlVersion = "42.2.2"
+    val calDavVersion = "1.0.1"
 
+    implementation("com.github.caldav4j:caldav4j:$calDavVersion")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("com.github.kittinunf.result:result:$kittinunfResultVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$kotlinxSerializationVersion")
