@@ -1,0 +1,5 @@
+/.idea/
+/bot.iml
+/.gradle/
+/build/
+/src/main/resources/dev.properties
