@@ -29,16 +29,18 @@ repositories {
 dependencies {
     val kittinunfResultVersion = "3.0.0"
     val konfigVersion = "1.6.10.0"
-    val kotlinxSerializationVersion = "0.20.0"
     val ktBotVersion = "1.3.4"
     val exposedVersion = "0.25.1"
     val postgresqlVersion = "42.2.2"
     val calDavVersion = "1.0.1"
 
-    implementation("com.github.caldav4j:caldav4j:$calDavVersion")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("com.github.kittinunf.result:result:$kittinunfResultVersion")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$kotlinxSerializationVersion")
+
+    implementation("com.github.caldav4j:caldav4j:$calDavVersion")
+    implementation("javax.cache:cache-api:1.0.0")
+    implementation("org.ehcache:ehcache:3.9.0")
+
     implementation("com.github.elbekd:kt-telegram-bot:$ktBotVersion")
     implementation("com.natpryce:konfig:$konfigVersion")
 

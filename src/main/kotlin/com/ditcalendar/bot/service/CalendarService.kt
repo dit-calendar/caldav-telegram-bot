@@ -1,6 +1,6 @@
 package com.ditcalendar.bot.service
 
-import com.ditcalendar.bot.domain.dao.find
+import com.ditcalendar.bot.caldav.CalDavManager
 import com.ditcalendar.bot.domain.dao.findOrCreate
 import com.ditcalendar.bot.domain.data.*
 import com.ditcalendar.bot.teamup.addUserToWho
@@ -14,22 +14,21 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 
-class CalendarService(private val calendarEndpoint: CalendarEndpoint,
-                      private val eventEndpoint: EventEndpoint) {
+class CalendarService(private val calDavManager: CalDavManager) {
 
     fun getCalendarAndTask(subCalendarName: String, startDate: String, endDate: String, chatId: Long, messageId: Int): Result<SubCalendar, Exception> =
-            calendarEndpoint.findSubcalendar(subCalendarName)
+            calDavManager.findSubcalendar(subCalendarName)
                     .map {
                         val postCalendarMetaInfo = findOrCreate(chatId, messageId, it.id, startDate, endDate)
                         it.fillWithTasks(startDate, endDate, postCalendarMetaInfo)
                     }
 
     fun getCalendarAndTask(id: Int, startDate: String, endDate: String, postCalendarMetaInfo: PostCalendarMetaInfo): Result<SubCalendar, Exception> =
-            calendarEndpoint.findSubcalendar(id)
+            calDavManager.findSubcalendar(id)
                     .map { it.fillWithTasks(startDate, endDate, postCalendarMetaInfo) }
 
     fun assignUserToTask(taskId: String, telegramLink: TelegramLink, metaInfoId: Int): Result<TelegramTaskForUnassignment, Exception> =
-            eventEndpoint
+            calDavManager
                     .getEvent(taskId)
                     .flatMap { oldTask ->
                         oldTask.apply { who = addUserToWho(who, telegramLink.telegramUserId.toString()) }
@@ -38,7 +37,7 @@ class CalendarService(private val calendarEndpoint: CalendarEndpoint,
                     }
 
     fun unassignUserFromTask(taskId: String, telegramLink: TelegramLink): Result<TelegramTaskAfterUnassignment, Exception> =
-            eventEndpoint
+            calDavManager
                     .getEvent(taskId)
                     .flatMap { task ->
                         task.apply { who = removeUserFromWho(who, telegramLink.telegramUserId.toString()) }

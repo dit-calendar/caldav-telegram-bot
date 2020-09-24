@@ -1,5 +1,6 @@
 package com.ditcalendar.bot
 
+import com.ditcalendar.bot.caldav.CalDavManager
 import com.ditcalendar.bot.config.*
 import com.ditcalendar.bot.domain.createDB
 import com.ditcalendar.bot.domain.dao.find
@@ -7,8 +8,6 @@ import com.ditcalendar.bot.domain.dao.findByMessageId
 import com.ditcalendar.bot.domain.dao.updateMessageId
 import com.ditcalendar.bot.domain.data.InvalidRequest
 import com.ditcalendar.bot.service.*
-import com.ditcalendar.bot.teamup.endpoint.CalendarEndpoint
-import com.ditcalendar.bot.teamup.endpoint.EventEndpoint
 import com.ditcalendar.bot.telegram.service.*
 import com.elbekD.bot.Bot
 import com.elbekD.bot.server
@@ -33,7 +32,7 @@ fun main(args: Array<String>) {
 
     createDB()
 
-    val commandExecution = CommandExecution(CalendarService(CalendarEndpoint(), EventEndpoint()))
+    val commandExecution = CommandExecution(CalendarService(CalDavManager()))
 
     val bot = if (config[webhook_is_enabled]) {
         Bot.createWebhook(config[bot_name], token) {
