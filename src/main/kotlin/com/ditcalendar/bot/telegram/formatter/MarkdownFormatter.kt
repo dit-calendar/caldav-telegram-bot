@@ -4,8 +4,8 @@ import com.ditcalendar.bot.config.bot_name
 import com.ditcalendar.bot.config.config
 import com.ditcalendar.bot.domain.data.*
 import com.ditcalendar.bot.service.assignDeepLinkCommand
-import com.ditcalendar.bot.teamup.data.Event
-import com.ditcalendar.bot.teamup.data.SubCalendar
+import net.fortuna.ical4j.model.Calendar
+import net.fortuna.ical4j.model.component.VEvent
 import java.text.SimpleDateFormat
 
 
@@ -15,40 +15,38 @@ private val botName = config[bot_name]
 
 fun TelegramTaskAssignment.toMarkdown(): String {
     val formattedDescription =
-            if (task.notes != null && task.notes!!.isNotBlank())
-                System.lineSeparator() + task.notes!!
-                        .replace("<p>", "")
-                        .replace("</p>", "")
+            if (task.description != null && task.description.value!!.isNotBlank())
+                System.lineSeparator() + task.description.value!!
                         .withMDEscape()
             else ""
     return when (this) {
         is TelegramTaskForAssignment ->
-            "\uD83D\uDD51 *${task.formatTime()}* \\- ${task.title.withMDEscape()}" + formattedDescription + System.lineSeparator() +
-                    "Who?: ${assignedUsers.toMarkdown()} [assign me](https://t.me/$botName?start=$assignDeepLinkCommand${task.id}_$postCalendarMetaInfoId)"
+            "\uD83D\uDD51 *${task.formatTime()}* \\- ${task.summary.value.withMDEscape()}" + formattedDescription + System.lineSeparator() +
+                    "Who?: ${assignedUsers.toMarkdown()} [assign me](https://t.me/$botName?start=$assignDeepLinkCommand${0}_$postCalendarMetaInfoId)"
 
         is TelegramTaskForUnassignment ->
             "\uD83C\uDF89 *successfully assigned:*" + System.lineSeparator() +
                     task.formatDate() + System.lineSeparator() +
-                    "*${task.formatTime()}* \\- ${task.title.withMDEscape()}$formattedDescription" + System.lineSeparator() +
+                    "*${task.formatTime()}* \\- ${task.summary.value.withMDEscape()}$formattedDescription" + System.lineSeparator() +
                     "Who?: ${assignedUsers.toMarkdown()}"
 
         is TelegramTaskAfterUnassignment ->
             """
                 *successfully removed from*:
                 ${task.formatDate()}
-                *${task.formatTime()}* \- ${task.title.withMDEscape()}
+                *${task.formatTime()}* \- ${task.summary.value.withMDEscape()}
             """.trimIndent()
     }
 }
 
-private fun Event.formatTime(): String {
+private fun VEvent.formatTime(): String {
     val formatter = SimpleDateFormat("HH:mm")
-    var timeString = formatter.format(this.startDate)
-    timeString += " \\- " + formatter.format(this.endDate)
+    var timeString = formatter.format(this.startDate.date)
+    timeString += " \\- " + formatter.format(this.endDate.date)
     return timeString
 }
 
-private fun Event.formatDate(): String = SimpleDateFormat("dd.MM.yyyy").format(this.startDate).withMDEscape()
+private fun VEvent.formatDate(): String = SimpleDateFormat("dd.MM.yyyy").format(this.startDate.date).withMDEscape()
 
 @JvmName("toMarkdownForTelegramLinks")
 private fun TelegramLinks.toMarkdown(): String {
@@ -62,9 +60,9 @@ private fun TelegramLinks.toMarkdown(): String {
 fun TelegramTaskAssignments.toMarkdown(): String = System.lineSeparator() +
         if (this.isEmpty()) "no tasks found" else joinToString(separator = System.lineSeparator()) { it.toMarkdown() }
 
-fun SubCalendar.toMarkdown(): String {
+fun CalendarDTO.toMarkdown(): String {
     return """
-            *$name* \- ${startDate!!.withMDEscape()}${System.lineSeparator()}
+            *$name* \- ${startDate.withMDEscape()}${System.lineSeparator()}
         """.trimIndent() + tasks.toMarkdown()
 }
 

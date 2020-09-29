@@ -1,13 +1,12 @@
 package com.ditcalendar.bot.domain.data
 
-import com.ditcalendar.bot.teamup.data.Event
-import com.ditcalendar.bot.teamup.data.core.Base
+import net.fortuna.ical4j.model.component.VEvent
 
 typealias TelegramTaskAssignments = List<TelegramTaskAssignment>
 
 
-sealed class TelegramTaskAssignment(val task: Event, val assignedUsers: TelegramLinks) : Base()
+sealed class TelegramTaskAssignment(val task: VEvent, val assignedUsers: TelegramLinks)
 
-class TelegramTaskForAssignment(t: Event, tl: TelegramLinks, val postCalendarMetaInfoId: Int) : TelegramTaskAssignment(t, tl)
-class TelegramTaskForUnassignment(t: Event, tl: TelegramLinks, val postCalendarMetaInfoId: Int) : TelegramTaskAssignment(t, tl)
-class TelegramTaskAfterUnassignment(t: Event, tl: TelegramLinks) : TelegramTaskAssignment(t, tl)
+class TelegramTaskForAssignment(t: VEvent, tl: TelegramLinks, val postCalendarMetaInfoId: Int) : TelegramTaskAssignment(t, tl)
+class TelegramTaskForUnassignment(t: VEvent, tl: TelegramLinks, val postCalendarMetaInfoId: Int) : TelegramTaskAssignment(t, tl)
+class TelegramTaskAfterUnassignment(t: VEvent, tl: TelegramLinks) : TelegramTaskAssignment(t, tl)
