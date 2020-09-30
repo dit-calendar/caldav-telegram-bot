@@ -84,18 +84,18 @@ fun main(args: Array<String>) {
         }
     }
 
-//    bot.onCallbackQuery { callbackQuery ->
-//        checkGlobalStateBeforeHandling(callbackQuery.id) {
-//            val request = callbackQuery.data
-//            val originallyMessage = callbackQuery.message
-//
-//            if (request == null || originallyMessage == null) {
-//                bot.answerCallbackQuery(callbackQuery.id, wrongRequestResponse)
-//            } else {
-//                val msgUser = callbackQuery.from
-//                val response = commandExecution.executeCallback(originallyMessage.chat.id.toInt(), msgUser.id, msgUser.first_name, request, originallyMessage)
-//
-//                bot.callbackResponse(response, callbackQuery, originallyMessage)
+    bot.onCallbackQuery { callbackQuery ->
+        checkGlobalStateBeforeHandling(callbackQuery.id) {
+            val request = callbackQuery.data
+            val originallyMessage = callbackQuery.message
+
+            if (request == null || originallyMessage == null) {
+                bot.answerCallbackQuery(callbackQuery.id, wrongRequestResponse)
+            } else {
+                val msgUser = callbackQuery.from
+                val response = commandExecution.executeCallback(originallyMessage.chat.id.toInt(), msgUser.id, msgUser.first_name, request, originallyMessage)
+
+                bot.callbackResponse(response, callbackQuery, originallyMessage)
 //                response.success {
 //                    if (request.startsWith(assingWithNameCallbackCommand) || request.startsWith(assingAnnonCallbackCommand)
 //                            || request.startsWith(unassignCallbackCommand)) {
@@ -108,9 +108,9 @@ fun main(args: Array<String>) {
 //                        reloadOldMessage(optsAfterTaskId)
 //                    }
 //                }
-//            }
-//        }
-//    }
+            }
+        }
+    }
 
     //for deeplinking
     bot.onCommand("/start") { msg, opts ->

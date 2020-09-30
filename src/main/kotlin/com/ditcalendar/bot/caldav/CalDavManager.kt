@@ -50,12 +50,13 @@ class CalDavManager {
         val method = factory.createPropFindMethod(uri, propertyNameSet, 1)
 
         val response: HttpResponse = httpclient.execute(method)
-        val calendar = method.getResponseBodyAsMultiStatus(response)
-        for (respons in calendar.responses) {
-            val properties = respons.getProperties(200)
-            val displayName = properties.get(DavPropertyName.DISPLAYNAME)
+        val multiStatusResponses = method.getResponseBodyAsMultiStatus(response)
+        for (multiStatusResponse in  multiStatusResponses.responses) {
+            val davProperties = multiStatusResponse.getProperties(200)
+            val displayName = davProperties[DavPropertyName.PROPERTY_DISPLAYNAME]
+
             if (displayName != null && displayName.value.toString() == subCalendarName) {
-                return getCalendarAndEvents(respons.href, subCalendarName)
+                return getCalendarAndEvents(multiStatusResponse.href, subCalendarName)
             }
         }
         return Result.error(NoSubcalendarFound(subCalendarName))

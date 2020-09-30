@@ -8,18 +8,18 @@ import org.jetbrains.exposed.sql.update
 object PostCalendarMetaInfoTable : IntIdTable() {
     val chatId = long("chatId")
     var messageId = integer("messageId").uniqueIndex()
-    val subCalendarId = integer("subCalendarId")
+    val subCalendarName = varchar("subCalendarName", 50)
     val startDate = varchar("startDate", 50)
     val endDate = varchar("endDate", 50)
 }
 
-fun findOrCreate(newChatId: Long, msgUserId: Int, subCalendar: Int, start: String, end: String): PostCalendarMetaInfo = transaction {
+fun findOrCreate(newChatId: Long, msgUserId: Int, subCalendar: String, start: String, end: String): PostCalendarMetaInfo = transaction {
     val result = PostCalendarMetaInfo.find { PostCalendarMetaInfoTable.messageId eq msgUserId }
     if (result.count() == 0L) {
         PostCalendarMetaInfo.new {
             chatId = newChatId
             messageId = msgUserId
-            subCalendarId = subCalendar
+            subCalendarName = subCalendar
             startDate = start
             endDate = end
         }
