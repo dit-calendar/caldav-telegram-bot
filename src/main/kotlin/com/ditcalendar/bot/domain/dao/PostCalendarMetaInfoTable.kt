@@ -11,9 +11,10 @@ object PostCalendarMetaInfoTable : IntIdTable() {
     val subCalendarName = varchar("subCalendarName", 50)
     val startDate = varchar("startDate", 50)
     val endDate = varchar("endDate", 50)
+    val uri = varchar("uri", 50)
 }
 
-fun findOrCreate(newChatId: Long, msgUserId: Int, subCalendar: String, start: String, end: String): PostCalendarMetaInfo = transaction {
+fun findOrCreate(newChatId: Long, msgUserId: Int, subCalendar: String, start: String, end: String, href: String): PostCalendarMetaInfo = transaction {
     val result = PostCalendarMetaInfo.find { PostCalendarMetaInfoTable.messageId eq msgUserId }
     if (result.count() == 0L) {
         PostCalendarMetaInfo.new {
@@ -22,6 +23,7 @@ fun findOrCreate(newChatId: Long, msgUserId: Int, subCalendar: String, start: St
             subCalendarName = subCalendar
             startDate = start
             endDate = end
+            uri = href
         }
     } else result.elementAt(0)
 }

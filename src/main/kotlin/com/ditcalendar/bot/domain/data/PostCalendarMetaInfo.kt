@@ -13,4 +13,5 @@ class PostCalendarMetaInfo(id: EntityID<Int>) : IntEntity(id) {
     var subCalendarName: String by PostCalendarMetaInfoTable.subCalendarName
     var startDate: String by PostCalendarMetaInfoTable.startDate
     var endDate: String by PostCalendarMetaInfoTable.endDate
+    var uri: String by PostCalendarMetaInfoTable.uri
 }

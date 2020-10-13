@@ -11,6 +11,7 @@ import com.github.caldav4j.util.GenerateQuery
 import com.github.kittinunf.result.Result
 import net.fortuna.ical4j.model.Calendar
 import net.fortuna.ical4j.model.Date
+import net.fortuna.ical4j.model.property.Url
 import org.apache.http.HttpResponse
 import org.apache.http.auth.AuthScope
 import org.apache.http.auth.UsernamePasswordCredentials
@@ -20,6 +21,7 @@ import org.apache.http.impl.client.BasicCredentialsProvider
 import org.apache.http.impl.client.HttpClientBuilder
 import org.apache.jackrabbit.webdav.property.DavPropertyName
 import org.apache.jackrabbit.webdav.property.DavPropertyNameSet
+import java.net.URI
 
 class CalDavManager {
 
@@ -39,7 +41,7 @@ class CalDavManager {
                 .build()
     }
 
-    fun findSubcalendar(subCalendarName: String): Result<Calendar, Exception> {
+    fun findSubcalendarAndEvents(subCalendarName: String): Result<Calendar, Exception> {
         //System.setProperty("ical4j.unfolding.relaxed", "true")
         System.setProperty("ical4j.parsing.relaxed", "true")
         val uri = "http://localhost:8080/remote.php/dav/calendars/admin/"
@@ -75,6 +77,7 @@ class CalDavManager {
         return if (calendars.isEmpty()) {
             Result.error(NoEventsFound(subCalendarName))
         } else {
+            calendars.first().properties.add(Url(URI(href)))
             Result.success(calendars.first())
         }
     }

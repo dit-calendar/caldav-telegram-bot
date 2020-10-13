@@ -6,25 +6,23 @@ import com.ditcalendar.bot.domain.dao.findOrCreate
 import com.ditcalendar.bot.domain.data.*
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
-import net.fortuna.ical4j.model.Calendar
-import net.fortuna.ical4j.model.Component
-import net.fortuna.ical4j.model.ComponentList
-import net.fortuna.ical4j.model.component.CalendarComponent
 import net.fortuna.ical4j.model.component.VEvent
+import net.fortuna.ical4j.model.property.Url
 
 class CalendarService(private val calDavManager: CalDavManager) {
 
     fun getCalendarAndTask(subCalendarName: String, startDate: String, endDate: String, chatId: Long, messageId: Int): Result<CalendarDTO, Exception> =
-            calDavManager.findSubcalendar(subCalendarName)
+            calDavManager.findSubcalendarAndEvents(subCalendarName)
                     .map {
-                        val postCalendarMetaInfo = findOrCreate(chatId, messageId, subCalendarName, startDate, endDate)
+                        var href = it.getProperty<Url>("URL")
+                        val postCalendarMetaInfo = findOrCreate(chatId, messageId, subCalendarName, startDate, endDate, href.value)
                         val tasks: List<VEvent> = it.components.getComponents("VEVENT")
                         val constructor = { task: VEvent, t: TelegramLinks -> TelegramTaskForAssignment(task, t, postCalendarMetaInfo.id.value) }
                         CalendarDTO(subCalendarName, startDate, endDate, tasks.map { it.fillWithTelegramLinks(constructor) })
                     }
 
     fun getCalendarAndTask(subCalendarName: String, startDate: String, endDate: String, postCalendarMetaInfo: PostCalendarMetaInfo): Result<CalendarDTO, Exception> =
-            calDavManager.findSubcalendar(subCalendarName)
+            calDavManager.findSubcalendarAndEvents(subCalendarName)
                     .map {
                         val tasks: List<VEvent> = it.components.getComponents("VEVENT")
                         val constructor = { task: VEvent, t: TelegramLinks -> TelegramTaskForAssignment(task, t, postCalendarMetaInfo.id.value) }
