@@ -3,6 +3,7 @@ package com.ditcalendar.bot.caldav
 import com.ditcalendar.bot.config.caldav_user_name
 import com.ditcalendar.bot.config.caldav_user_password
 import com.ditcalendar.bot.config.config
+import com.ditcalendar.bot.domain.data.NoEventsFound
 import com.ditcalendar.bot.domain.data.NoSubcalendarFound
 import com.github.caldav4j.CalDAVCollection
 import com.github.caldav4j.methods.CalDAV4JMethodFactory
@@ -72,7 +73,7 @@ class CalDavManager {
         val calendars = calClient.queryCalendars(httpclient, calendarQuery)
 
         return if (calendars.isEmpty()) {
-            Result.error(NoSubcalendarFound(subCalendarName))
+            Result.error(NoEventsFound(subCalendarName))
         } else {
             Result.success(calendars.first())
         }

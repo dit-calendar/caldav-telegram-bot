@@ -24,11 +24,7 @@ fun parseErrorToString(error: Exception): String =
 //                }
 //            }
             is DitBotError -> {
-                when (error) {
-                    is InvalidRequest -> error.message!!
-                    is NoSubcalendarFound -> error.message!!
-                    is MultipleSubcalendarsFound -> error.message!!
-                }
+                error.message!!
             }
             else -> "unknown error"
         }.withMDEscape()

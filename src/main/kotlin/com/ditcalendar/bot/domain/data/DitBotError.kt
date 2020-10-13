@@ -9,4 +9,5 @@ class InvalidRequest(errorMessage: String?) : DitBotError(errorMessage ?: wrongR
 }
 
 class NoSubcalendarFound(name: String) : DitBotError("no subcalendar found with name $name")
+class NoEventsFound(name: String) : DitBotError("no events in subcalendar with name $name found")
 class MultipleSubcalendarsFound : DitBotError("found more than one subcalendar")
