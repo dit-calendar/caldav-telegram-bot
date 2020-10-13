@@ -11,6 +11,7 @@ import com.github.caldav4j.util.GenerateQuery
 import com.github.kittinunf.result.Result
 import net.fortuna.ical4j.model.Calendar
 import net.fortuna.ical4j.model.Date
+import net.fortuna.ical4j.model.component.VEvent
 import net.fortuna.ical4j.model.property.Url
 import org.apache.http.HttpResponse
 import org.apache.http.auth.AuthScope
@@ -82,11 +83,22 @@ class CalDavManager {
         }
     }
 
-    fun findSubcalendar(id: Int) {
+    fun updateEvent(href: String, eventUUID: String, who: String): Result<VEvent, Exception> {
+        //System.setProperty("ical4j.unfolding.relaxed", "true")
+        val gq = GenerateQuery()
+        gq.setComponent("VEVENT")
+        val calClient = CalDAVCollection("http://localhost:8080$href")
+        val calendar = calClient.queryCalendar(httpclient, "VEVENT", eventUUID, null)
 
+        return if (calendar == null) {
+            Result.error(NoSubcalendarFound(href))
+        } else {
+            var event: VEvent = calendar.getComponent("VEVENT") as VEvent
+            Result.success(event)
+        }
     }
 
-    fun getEvent(eventId: String) {
+    fun findSubcalendarAndEvents(id: Int) {
 
     }
 

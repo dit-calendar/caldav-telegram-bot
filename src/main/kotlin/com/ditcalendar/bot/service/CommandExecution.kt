@@ -2,14 +2,10 @@ package com.ditcalendar.bot.service
 
 import com.ditcalendar.bot.domain.dao.findOrCreate
 import com.ditcalendar.bot.domain.dao.updateName
-import com.ditcalendar.bot.domain.data.CalendarDTO
-import com.ditcalendar.bot.domain.data.InvalidRequest
-import com.ditcalendar.bot.domain.data.PostCalendarMetaInfo
-import com.ditcalendar.bot.domain.data.TelegramLink
+import com.ditcalendar.bot.domain.data.*
 import com.ditcalendar.bot.helpMessage
 import com.elbekD.bot.types.Message
 import com.github.kittinunf.result.Result
-import net.fortuna.ical4j.model.Calendar
 
 const val assignDeepLinkCommand = "assign_"
 const val unassignCallbackCommand = "unassign_"
@@ -31,27 +27,27 @@ class CommandExecution(private val calendarService: CalendarService) {
             } else if (callbaBackData.startsWith(reloadCallbackCommand)) {
                 reloadCalendar(callbaBackData.substringAfter(reloadCallbackCommand), msg.chat.id, msg.message_id)
             } else if (callbaBackData.startsWith(assingWithNameCallbackCommand)) {
-//                var telegramLink = findOrCreate(chatId, msgUserId)
-//                telegramLink = updateName(telegramLink, msgUserFirstName)
-//                executeTaskAssignmentCommand(telegramLink, callbaBackData)
+                var telegramLink = findOrCreate(chatId, msgUserId)
+                telegramLink = updateName(telegramLink, msgUserFirstName)
+                executeTaskAssignmentCommand(telegramLink, callbaBackData)
                 Result.error(InvalidRequest())
             } else if (callbaBackData.startsWith(assingAnnonCallbackCommand)) {
-//                var telegramLink = findOrCreate(chatId, msgUserId)
-//                telegramLink = updateName(telegramLink, null)
-//                executeTaskAssignmentCommand(telegramLink, callbaBackData)
+                var telegramLink = findOrCreate(chatId, msgUserId)
+                telegramLink = updateName(telegramLink, null)
+                executeTaskAssignmentCommand(telegramLink, callbaBackData)
                 Result.error(InvalidRequest())
             } else
                 Result.error(InvalidRequest())
-//
-//    private fun executeTaskAssignmentCommand(telegramLink: TelegramLink, opts: String): Result<TelegramTaskForUnassignment, Exception> {
-//        val variables = opts.substringAfter("_").split("_")
-//        val taskId = variables.getOrNull(0)
-//        val metaInfoId = variables.getOrNull(1)?.toInt()
-//        return if (taskId != null && taskId.isNotBlank() && metaInfoId != null)
-//            calendarService.assignUserToTask(taskId, telegramLink, metaInfoId)
-//        else
-//            Result.error(InvalidRequest())
-//    }
+
+    private fun executeTaskAssignmentCommand(telegramLink: TelegramLink, opts: String): Result<TelegramTaskForUnassignment, Exception> {
+        val variables = opts.substringAfter("_").split("_")
+        val taskId = variables.getOrNull(0)
+        val metaInfoId = variables.getOrNull(1)?.toInt()
+        return if (taskId != null && taskId.isNotBlank() && metaInfoId != null)
+            calendarService.assignUserToTask(taskId, telegramLink, metaInfoId)
+        else
+            Result.error(InvalidRequest())
+    }
 
     fun executePublishCalendarCommand(opts: String, msg: Message): Result<CalendarDTO, Exception> {
         val variables = opts.split(" ")
