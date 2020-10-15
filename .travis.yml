@@ -1,4 +1,4 @@
 language: java
 jdk: openjdk11
 script:
-  - gradle build
+  - ./gradlew build
