@@ -4,12 +4,11 @@ group = "dit-calendar"
 version = "0.1.0-SNAPSHOT"
 
 plugins {
-    val kotlinVersion = "1.3.72"
+    val kotlinVersion = "1.4.10"
 
     application
 
     kotlin("jvm") version kotlinVersion
-    kotlin("plugin.serialization") version kotlinVersion
 
     id("com.github.johnrengelman.shadow") version "5.2.0"
 }
@@ -22,19 +21,17 @@ repositories {
     mavenLocal()
     mavenCentral()
     maven { url = uri("https://jitpack.io") }
-    maven { url = uri("https://kotlin.bintray.com/kotlinx") }
     jcenter()
 }
 
 dependencies {
-    val kittinunfResultVersion = "3.0.0"
+    val kittinunfResultVersion = "3.1.0"
     val konfigVersion = "1.6.10.0"
-    val ktBotVersion = "1.3.4"
-    val exposedVersion = "0.25.1"
-    val postgresqlVersion = "42.2.2"
+    val ktBotVersion = "1.3.5"
+    val exposedVersion = "0.28.1"
+    val postgresqlVersion = "42.2.16"
     val calDavVersion = "1.0.1"
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("com.github.kittinunf.result:result:$kittinunfResultVersion")
 
     implementation("com.github.caldav4j:caldav4j:$calDavVersion")
