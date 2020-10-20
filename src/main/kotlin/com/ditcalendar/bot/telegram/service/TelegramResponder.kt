@@ -1,5 +1,6 @@
 package com.ditcalendar.bot.telegram.service
 
+import com.ditcalendar.bot.domain.data.BaseDTO
 import com.ditcalendar.bot.domain.data.CalendarDTO
 import com.ditcalendar.bot.domain.data.TelegramTaskAfterUnassignment
 import com.ditcalendar.bot.domain.data.TelegramTaskForUnassignment
@@ -38,7 +39,7 @@ fun Bot.commandResponse(response: Result<CalendarDTO, Exception>, chatId: Long):
                 sendMessage(chatId, parseErrorToString(response.error), parseMode, true)
         }
 
-fun Bot.callbackResponse(response: Result<CalendarDTO, Exception>, callbackQuery: CallbackQuery, originallyMessage: Message) {
+fun Bot.callbackResponse(response: Result<BaseDTO, Exception>, callbackQuery: CallbackQuery, originallyMessage: Message) {
     when (response) {
         is Result.Success ->
             when (val responseObject = response.value) {
@@ -50,19 +51,19 @@ fun Bot.callbackResponse(response: Result<CalendarDTO, Exception>, callbackQuery
 
                     telegramAnswer.handleCallbackQuery(this, callbackQuery.id, calendarReloadCallbackNotification)
                 }
-//                is TelegramTaskForUnassignment -> {
-//                    val inlineButton = InlineKeyboardButton("unassign me", callback_data = "$unassignCallbackCommand${responseObject.task.id}_${responseObject.postCalendarMetaInfoId}")
-//                    val inlineKeyboardMarkup = InlineKeyboardMarkup(listOf(listOf(inlineButton)))
-//                    val telegramAnswer = editMessageText(originallyMessage.chat.id, originallyMessage.message_id, text = responseObject.toMarkdown(),
-//                            parseMode = parseMode, disableWebPagePreview = true, markup = inlineKeyboardMarkup)
-//
-//                    telegramAnswer.handleCallbackQuery(this, callbackQuery.id, null)
-//                }
-//                is TelegramTaskAfterUnassignment -> {
-//                    val telegramAnswer = editMessageText(originallyMessage.chat.id, originallyMessage.message_id, text = responseObject.toMarkdown(),
-//                            parseMode = parseMode)
-//                    telegramAnswer.handleCallbackQuery(this, callbackQuery.id, "successfully signed out")
-//                }
+                is TelegramTaskForUnassignment -> {
+                    val inlineButton = InlineKeyboardButton("unassign me", callback_data = "$unassignCallbackCommand${responseObject.task.uid.value}_${responseObject.postCalendarMetaInfoId}")
+                    val inlineKeyboardMarkup = InlineKeyboardMarkup(listOf(listOf(inlineButton)))
+                    val telegramAnswer = editMessageText(originallyMessage.chat.id, originallyMessage.message_id, text = responseObject.toMarkdown(),
+                            parseMode = parseMode, disableWebPagePreview = true, markup = inlineKeyboardMarkup)
+
+                    telegramAnswer.handleCallbackQuery(this, callbackQuery.id, null)
+                }
+                is TelegramTaskAfterUnassignment -> {
+                    val telegramAnswer = editMessageText(originallyMessage.chat.id, originallyMessage.message_id, text = responseObject.toMarkdown(),
+                            parseMode = parseMode)
+                    telegramAnswer.handleCallbackQuery(this, callbackQuery.id, "successfully signed out")
+                }
                 else ->
                     answerCallbackQuery(callbackQuery.id, "internal server error", alert = true)
             }

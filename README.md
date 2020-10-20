@@ -17,7 +17,7 @@ To update your bot manually, you have to delete the program in heroku (under set
 
 ## local execution
 * nextcloud:
-  * `docker run -p 8080:80 nextcloud` on first start
+  * `docker run --name nextcloud_caldav -p 8080:80 nextcloud` on first start
     * `docker start container-id` to run existing nextcloud server
 * start bots DB with `docker-compose up`
 

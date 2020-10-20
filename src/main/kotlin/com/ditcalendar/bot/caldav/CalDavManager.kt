@@ -9,6 +9,7 @@ import com.github.caldav4j.CalDAVCollection
 import com.github.caldav4j.methods.CalDAV4JMethodFactory
 import com.github.caldav4j.util.GenerateQuery
 import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.map
 import net.fortuna.ical4j.model.Calendar
 import net.fortuna.ical4j.model.Date
 import net.fortuna.ical4j.model.component.VEvent
@@ -55,7 +56,7 @@ class CalDavManager {
 
         val response: HttpResponse = httpclient.execute(method)
         val multiStatusResponses = method.getResponseBodyAsMultiStatus(response)
-        for (multiStatusResponse in  multiStatusResponses.responses) {
+        for (multiStatusResponse in multiStatusResponses.responses) {
             val davProperties = multiStatusResponse.getProperties(200)
             val displayName = davProperties[DavPropertyName.PROPERTY_DISPLAYNAME]
 
@@ -84,7 +85,6 @@ class CalDavManager {
     }
 
     fun updateEvent(href: String, eventUUID: String, who: String): Result<VEvent, Exception> {
-        //System.setProperty("ical4j.unfolding.relaxed", "true")
         val gq = GenerateQuery()
         gq.setComponent("VEVENT")
         val calClient = CalDAVCollection("http://localhost:8080$href")
@@ -93,8 +93,9 @@ class CalDavManager {
         return if (calendar == null) {
             Result.error(NoSubcalendarFound(href))
         } else {
-            var event: VEvent = calendar.getComponent("VEVENT") as VEvent
-            Result.success(event)
+            val event: VEvent = calendar.getComponent("VEVENT") as VEvent
+            //event.properties.getProperty<Summary>("SUMMARY").value = "TestTitel1"
+            Result.of<Unit, Exception> { calClient.updateMasterEvent(httpclient, event, null) }.map { event }
         }
     }
 

@@ -15,7 +15,7 @@ const val assingAnnonCallbackCommand = "assignmeAnnon_"
 
 class CommandExecution(private val calendarService: CalendarService) {
 
-    fun executeCallback(chatId: Int, msgUserId: Int, msgUserFirstName: String, callbaBackData: String, msg: Message): Result<CalendarDTO, Exception> =
+    fun executeCallback(chatId: Int, msgUserId: Int, msgUserFirstName: String, callbaBackData: String, msg: Message): Result<BaseDTO, Exception> =
             if (callbaBackData.startsWith(unassignCallbackCommand)) {
 //                val taskId: String = callbaBackData.substringAfter(unassignCallbackCommand).substringBefore("_")
 //                if (taskId.isNotBlank()) {
@@ -23,19 +23,17 @@ class CommandExecution(private val calendarService: CalendarService) {
 //                    val telegramLink = findOrCreate(chatId, msgUserId)
 //                    calendarService.unassignUserFromTask(taskId, telegramLink)
 //                } else
-                    Result.error(InvalidRequest())
+                Result.error(InvalidRequest())
             } else if (callbaBackData.startsWith(reloadCallbackCommand)) {
                 reloadCalendar(callbaBackData.substringAfter(reloadCallbackCommand), msg.chat.id, msg.message_id)
             } else if (callbaBackData.startsWith(assingWithNameCallbackCommand)) {
                 var telegramLink = findOrCreate(chatId, msgUserId)
                 telegramLink = updateName(telegramLink, msgUserFirstName)
                 executeTaskAssignmentCommand(telegramLink, callbaBackData)
-                Result.error(InvalidRequest())
             } else if (callbaBackData.startsWith(assingAnnonCallbackCommand)) {
                 var telegramLink = findOrCreate(chatId, msgUserId)
                 telegramLink = updateName(telegramLink, null)
                 executeTaskAssignmentCommand(telegramLink, callbaBackData)
-                Result.error(InvalidRequest())
             } else
                 Result.error(InvalidRequest())
 
