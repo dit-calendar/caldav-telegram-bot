@@ -17,13 +17,15 @@ class CommandExecution(private val calendarService: CalendarService) {
 
     fun executeCallback(chatId: Int, msgUserId: Int, msgUserFirstName: String, callbaBackData: String, msg: Message): Result<BaseDTO, Exception> =
             if (callbaBackData.startsWith(unassignCallbackCommand)) {
-//                val taskId: String = callbaBackData.substringAfter(unassignCallbackCommand).substringBefore("_")
-//                if (taskId.isNotBlank()) {
-//                    // if user not existing, the DB of Bot was maybe dropped
-//                    val telegramLink = findOrCreate(chatId, msgUserId)
-//                    calendarService.unassignUserFromTask(taskId, telegramLink)
-//                } else
-                Result.error(InvalidRequest())
+                val variables = callbaBackData.substringAfter(unassignCallbackCommand).split("_")
+                val taskId = variables.getOrNull(0)
+                val metaInfoId = variables.getOrNull(1)?.toInt()
+                if (taskId != null && taskId.isNotBlank() && metaInfoId != null) {
+                    // if user not existing, the DB of Bot was maybe dropped
+                    val telegramLink = findOrCreate(chatId, msgUserId)
+                    calendarService.unassignUserFromTask(taskId, telegramLink, metaInfoId)
+                } else
+                    Result.error(InvalidRequest())
             } else if (callbaBackData.startsWith(reloadCallbackCommand)) {
                 reloadCalendar(callbaBackData.substringAfter(reloadCallbackCommand), msg.chat.id, msg.message_id)
             } else if (callbaBackData.startsWith(assingWithNameCallbackCommand)) {

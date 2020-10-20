@@ -38,17 +38,18 @@ class CalendarService(private val calDavManager: CalDavManager) {
                     oldTask.fillWithTelegramLinks { task: VEvent, t: TelegramLinks -> TelegramTaskForUnassignment(task, t, metaInfoId) }
                 }
     }
-//
-//    fun unassignUserFromTask(taskId: String, telegramLink: TelegramLink): Result<TelegramTaskAfterUnassignment, Exception> =
-//            calDavManager
-//                    .getEvent(taskId)
-//                    .flatMap { task ->
-//                        task.apply { who = removeUserFromWho(who, telegramLink.telegramUserId.toString()) }
-//                        eventEndpoint.updateEvent(task)
-//                                .map { it.fillWithTelegramLinks(::TelegramTaskAfterUnassignment) }
-//                    }
 
-//    private fun SubCalendar.fillWithTasks(startDate: String, endDate: String, postCalendarMetaInfo: PostCalendarMetaInfo) =
+    fun unassignUserFromTask(taskId: String, telegramLink: TelegramLink, metaInfoId: Int): Result<TelegramTaskAfterUnassignment, Exception> {
+        val postCalendarMetaInfo = find(metaInfoId)
+        return calDavManager
+                .updateEvent(postCalendarMetaInfo!!.uri, taskId, "TODO")
+                .map { oldTask ->
+                    //task.apply { who = removeUserFromWho(who, telegramLink.telegramUserId.toString()) }
+                    oldTask.fillWithTelegramLinks { task: VEvent, t: TelegramLinks -> TelegramTaskAfterUnassignment(task, t) }
+                }
+    }
+
+    //    private fun SubCalendar.fillWithTasks(startDate: String, endDate: String, postCalendarMetaInfo: PostCalendarMetaInfo) =
 //            this.apply {
 //                val tasksResulst = eventEndpoint.findEvents(this.id, startDate, endDate)
 //                val constructor = { task: Event, t: TelegramLinks -> TelegramTaskForAssignment(task, t, postCalendarMetaInfo.id.value) }
