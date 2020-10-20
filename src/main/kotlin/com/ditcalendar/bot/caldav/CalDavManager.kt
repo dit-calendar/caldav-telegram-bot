@@ -13,6 +13,8 @@ import com.github.kittinunf.result.map
 import net.fortuna.ical4j.model.Calendar
 import net.fortuna.ical4j.model.Date
 import net.fortuna.ical4j.model.component.VEvent
+import net.fortuna.ical4j.model.property.Comment
+import net.fortuna.ical4j.model.property.Summary
 import net.fortuna.ical4j.model.property.Url
 import org.apache.http.HttpResponse
 import org.apache.http.auth.AuthScope
@@ -94,7 +96,7 @@ class CalDavManager {
             Result.error(NoSubcalendarFound(href))
         } else {
             val event: VEvent = calendar.getComponent("VEVENT") as VEvent
-            //event.properties.getProperty<Summary>("SUMMARY").value = "TestTitel1"
+            event.properties.add(Comment("TelegramUser"))
             Result.of<Unit, Exception> { calClient.updateMasterEvent(httpclient, event, null) }.map { event }
         }
     }
