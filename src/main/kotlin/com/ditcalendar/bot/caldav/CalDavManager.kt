@@ -13,9 +13,8 @@ import com.github.kittinunf.result.map
 import net.fortuna.ical4j.model.Calendar
 import net.fortuna.ical4j.model.Date
 import net.fortuna.ical4j.model.component.VEvent
-import net.fortuna.ical4j.model.property.Comment
-import net.fortuna.ical4j.model.property.Summary
 import net.fortuna.ical4j.model.property.Url
+import net.fortuna.ical4j.model.property.XProperty
 import org.apache.http.HttpResponse
 import org.apache.http.auth.AuthScope
 import org.apache.http.auth.UsernamePasswordCredentials
@@ -26,6 +25,8 @@ import org.apache.http.impl.client.HttpClientBuilder
 import org.apache.jackrabbit.webdav.property.DavPropertyName
 import org.apache.jackrabbit.webdav.property.DavPropertyNameSet
 import java.net.URI
+
+const val telegramUserCalDavProperty: String = "TELEGRAM-USER"
 
 class CalDavManager {
 
@@ -86,27 +87,23 @@ class CalDavManager {
         }
     }
 
-    fun updateEvent(href: String, eventUUID: String, who: String): Result<VEvent, Exception> {
+    fun findEvent(href: String, eventUUID: String): Result<VEvent, Exception> {
         val gq = GenerateQuery()
         gq.setComponent("VEVENT")
         val calClient = CalDAVCollection("http://localhost:8080$href")
         val calendar = calClient.queryCalendar(httpclient, "VEVENT", eventUUID, null)
 
-        return if (calendar == null) {
+        return if (calendar == null)
             Result.error(NoSubcalendarFound(href))
-        } else {
-            val event: VEvent = calendar.getComponent("VEVENT") as VEvent
-            event.properties.add(Comment("TelegramUser"))
-            Result.of<Unit, Exception> { calClient.updateMasterEvent(httpclient, event, null) }.map { event }
-        }
+        else
+            Result.success(calendar.getComponent("VEVENT") as VEvent)
     }
 
-    fun findSubcalendarAndEvents(id: Int) {
-
-    }
-
-    fun updateEvent() {
-
+    fun updateEvent(href: String, event: VEvent, who: String): Result<VEvent, Exception> {
+        val calClient = CalDAVCollection("http://localhost:8080$href")
+        event.properties.removeAll { it.name == telegramUserCalDavProperty }
+        event.properties.add(XProperty(telegramUserCalDavProperty, who))
+        return Result.of<Unit, Exception> { calClient.updateMasterEvent(httpclient, event, null) }.map { event }
     }
 
     fun testConnection() {

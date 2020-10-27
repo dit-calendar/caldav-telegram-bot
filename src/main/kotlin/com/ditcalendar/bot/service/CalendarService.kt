@@ -1,13 +1,18 @@
 package com.ditcalendar.bot.service
 
 import com.ditcalendar.bot.caldav.CalDavManager
+import com.ditcalendar.bot.caldav.addUserToWho
+import com.ditcalendar.bot.caldav.removeUserFromWho
+import com.ditcalendar.bot.caldav.telegramUserCalDavProperty
 import com.ditcalendar.bot.domain.dao.find
 import com.ditcalendar.bot.domain.dao.findOrCreate
 import com.ditcalendar.bot.domain.data.*
 import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import net.fortuna.ical4j.model.component.VEvent
 import net.fortuna.ical4j.model.property.Url
+import net.fortuna.ical4j.model.property.XProperty
 
 class CalendarService(private val calDavManager: CalDavManager) {
 
@@ -32,21 +37,25 @@ class CalendarService(private val calDavManager: CalDavManager) {
     fun assignUserToTask(taskId: String, telegramLink: TelegramLink, metaInfoId: Int): Result<TelegramTaskForUnassignment, Exception> {
         val postCalendarMetaInfo = find(metaInfoId)
         return calDavManager
-                .updateEvent(postCalendarMetaInfo!!.uri, taskId, "TODO")
-                .map { oldTask ->
-                    // oldTask.apply { who = addUserToWho(who, telegramLink.telegramUserId.toString()) }
-                    oldTask.fillWithTelegramLinks { task: VEvent, t: TelegramLinks -> TelegramTaskForUnassignment(task, t, metaInfoId) }
+                .findEvent(postCalendarMetaInfo!!.uri, taskId)
+                .flatMap { oldTask ->
+                    var who = oldTask.getProperty<XProperty>(telegramUserCalDavProperty).value
+                    who = addUserToWho(who, telegramLink.telegramUserId.toString())
+                    calDavManager.updateEvent(postCalendarMetaInfo!!.uri, oldTask, who)
                 }
+                .map { it.fillWithTelegramLinks { task: VEvent, t: TelegramLinks -> TelegramTaskForUnassignment(task, t, metaInfoId) } }
     }
 
     fun unassignUserFromTask(taskId: String, telegramLink: TelegramLink, metaInfoId: Int): Result<TelegramTaskAfterUnassignment, Exception> {
         val postCalendarMetaInfo = find(metaInfoId)
         return calDavManager
-                .updateEvent(postCalendarMetaInfo!!.uri, taskId, "TODO")
-                .map { oldTask ->
-                    //task.apply { who = removeUserFromWho(who, telegramLink.telegramUserId.toString()) }
-                    oldTask.fillWithTelegramLinks { task: VEvent, t: TelegramLinks -> TelegramTaskAfterUnassignment(task, t) }
+                .findEvent(postCalendarMetaInfo!!.uri, taskId)
+                .flatMap { oldTask ->
+                    var who = oldTask.getProperty<XProperty>(telegramUserCalDavProperty).value
+                    who = removeUserFromWho(who, telegramLink.telegramUserId.toString())
+                    calDavManager.updateEvent(postCalendarMetaInfo!!.uri, oldTask, who)
                 }
+                .map { it.fillWithTelegramLinks { task: VEvent, t: TelegramLinks -> TelegramTaskAfterUnassignment(task, t) } }
     }
 
     //    private fun SubCalendar.fillWithTasks(startDate: String, endDate: String, postCalendarMetaInfo: PostCalendarMetaInfo) =
