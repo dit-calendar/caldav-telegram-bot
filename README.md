@@ -1,5 +1,8 @@
 # caldav-telegram-bot [![Build Status](https://travis-ci.org/dit-calendar/caldav-telegram-bot.svg?branch=master)](https://travis-ci.org/dit-calendar/caldav-telegram-bot)
-TODO
+*TODO* not finished yet.
+https://en.wikipedia.org/wiki/CalDAV#Server
+
+> :octocat: Alternatively,  [other calendars](https://github.com/dit-calendar/dit-calendar.github.io) are also supported.
 
 you can post it in your telegram group/channel, so a person can assign hirself
 <img src="doc/img/telegram-bot.gif" alt="telegram-gif"/>
