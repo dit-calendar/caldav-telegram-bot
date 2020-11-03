@@ -8,3 +8,7 @@ services:
     environment:
       POSTGRES_DB: botCalDav
       POSTGRES_PASSWORD: admin
+  nextcloud_caldav:
+    image: nextcloud:latest
+    ports:
+      - "8080:80"
