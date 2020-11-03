@@ -12,6 +12,7 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import net.fortuna.ical4j.model.Calendar
 import net.fortuna.ical4j.model.Date
+import net.fortuna.ical4j.model.DateTime
 import net.fortuna.ical4j.model.component.VEvent
 import net.fortuna.ical4j.model.property.Url
 import net.fortuna.ical4j.model.property.XProperty
@@ -25,11 +26,14 @@ import org.apache.http.impl.client.HttpClientBuilder
 import org.apache.jackrabbit.webdav.property.DavPropertyName
 import org.apache.jackrabbit.webdav.property.DavPropertyNameSet
 import java.net.URI
+import java.text.DateFormat
+import java.text.SimpleDateFormat
 
 const val telegramUserCalDavProperty: String = "TELEGRAM-USER"
 
 class CalDavManager {
 
+    private val df: DateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm")
     private val config by config()
     private val httpclient: HttpClient
 
@@ -46,10 +50,13 @@ class CalDavManager {
                 .build()
     }
 
-    fun findSubcalendarAndEvents(subCalendarName: String): Result<Calendar, Exception> {
+    fun findSubcalendarAndEvents(subCalendarName: String, startDate: String, endDate: String): Result<Calendar, Exception> {
         //System.setProperty("ical4j.unfolding.relaxed", "true")
         System.setProperty("ical4j.parsing.relaxed", "true")
         val uri = "http://localhost:8080/remote.php/dav/calendars/admin/"
+
+        val start = DateTime(df.parse("${startDate}T00:00"))
+        val end = DateTime(df.parse("${endDate}T04:00"))
 
         val factory = CalDAV4JMethodFactory()
         val propertyNameSet = DavPropertyNameSet()
@@ -64,17 +71,19 @@ class CalDavManager {
             val displayName = davProperties[DavPropertyName.PROPERTY_DISPLAYNAME]
 
             if (displayName != null && displayName.value.toString() == subCalendarName) {
-                return getCalendarAndEvents(multiStatusResponse.href, subCalendarName)
+                return getCalendarAndEvents(multiStatusResponse.href, subCalendarName, start, end)
             }
         }
         return Result.error(NoSubcalendarFound(subCalendarName))
     }
 
-    private fun getCalendarAndEvents(href: String, subCalendarName: String): Result<Calendar, Exception> {
+    private fun getCalendarAndEvents(href: String, subCalendarName: String, startDate: DateTime, endDate: DateTime): Result<Calendar, Exception> {
         //System.setProperty("ical4j.parsing.relaxed", "true")
         val gq = GenerateQuery()
-        gq.setComponent("VEVENT")
-        gq.setTimeRange(Date("20200801T173752Z"), Date("20200910T173752Z"))
+        gq.setFilterComponent("VEVENT")
+        gq.setTimeRange(startDate, endDate)
+        gq.setFilterComponentProperties(listOf("STATUS!=CANCELLED"))
+        //gq.setFilter("VEVENT [20200801T173752Z;20200910T173752Z] : STATUS!=CANCELLED")
         val calendarQuery = gq.generate()
         val calClient = CalDAVCollection("http://localhost:8080$href")
         val calendars = calClient.queryCalendars(httpclient, calendarQuery)
