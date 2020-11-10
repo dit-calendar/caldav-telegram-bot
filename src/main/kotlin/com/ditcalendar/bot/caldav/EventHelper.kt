@@ -1,13 +1,13 @@
 package com.ditcalendar.bot.caldav
 
-fun removeUserFromWho(oldWho: String?, telegramLinkUserId: String): String? =
+fun removeUserFromWho(oldWho: String?, telegramLinkUserId: String): String =
         when {
-            oldWho.isNullOrBlank() -> oldWho
+            oldWho.isNullOrBlank() -> ""
 
             telegramLinkUserId in oldWho ->
                 oldWho.replace(telegramLinkUserId, "").replace(";;", ";")
 
-            else -> oldWho
+            else -> ""
         }
 
 fun addUserToWho(oldWho: String?, telegramLinkUserId: String): String =

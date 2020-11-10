@@ -1,9 +1,6 @@
 package com.ditcalendar.bot.service
 
-import com.ditcalendar.bot.caldav.CalDavManager
-import com.ditcalendar.bot.caldav.addUserToWho
-import com.ditcalendar.bot.caldav.removeUserFromWho
-import com.ditcalendar.bot.caldav.telegramUserCalDavProperty
+import com.ditcalendar.bot.caldav.*
 import com.ditcalendar.bot.domain.dao.find
 import com.ditcalendar.bot.domain.dao.findOrCreate
 import com.ditcalendar.bot.domain.data.*
@@ -39,7 +36,7 @@ class CalendarService(private val calDavManager: CalDavManager) {
         return calDavManager
                 .findEvent(postCalendarMetaInfo!!.uri, taskId)
                 .flatMap { oldTask ->
-                    var who = oldTask.getProperty<XProperty>(telegramUserCalDavProperty).value
+                    var who = oldTask.getTelegramUserCalDavProperty()
                     who = addUserToWho(who, telegramLink.telegramUserId.toString())
                     calDavManager.updateEvent(postCalendarMetaInfo!!.uri, oldTask, who)
                 }
@@ -51,7 +48,7 @@ class CalendarService(private val calDavManager: CalDavManager) {
         return calDavManager
                 .findEvent(postCalendarMetaInfo!!.uri, taskId)
                 .flatMap { oldTask ->
-                    var who = oldTask.getProperty<XProperty>(telegramUserCalDavProperty).value
+                    var who = oldTask.getTelegramUserCalDavProperty()
                     who = removeUserFromWho(who, telegramLink.telegramUserId.toString())
                     calDavManager.updateEvent(postCalendarMetaInfo!!.uri, oldTask, who)
                 }
@@ -74,7 +71,11 @@ class CalendarService(private val calDavManager: CalDavManager) {
 //
     private inline fun <TelTask : TelegramTaskAssignment> VEvent.fillWithTelegramLinks(
             constructor: (task: VEvent, t: TelegramLinks) -> TelTask): TelTask {
-        val telegramLinks = find(listOf()) //TODO TelegramUser ID's missing
+        val assignedId: String? = this.getTelegramUserCalDavProperty()
+        val telegramLinks = find(parseWhoToIds(assignedId))
         return constructor(this, telegramLinks)
     }
+
+    private fun VEvent.getTelegramUserCalDavProperty(): String? =
+            this.getProperty<XProperty>(telegramUserCalDavProperty)?.run { this.value }
 }
