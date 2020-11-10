@@ -59,17 +59,17 @@ fun main(args: Array<String>) {
         }
     }
 
-//    fun reloadOldMessage(optsAfterTaskId: String) {
-//        val variables = optsAfterTaskId.split("_")
-//        val metaInfoId = variables.getOrNull(0)?.toIntOrNull()
-//        if (metaInfoId != null) {
-//            val postCalendarMetaInfo = find(metaInfoId)
-//            if (postCalendarMetaInfo != null) {
-//                commandExecution.reloadCalendar(postCalendarMetaInfo)
-//                        .success { bot.editOriginalCalendarMessage(it, postCalendarMetaInfo.chatId, postCalendarMetaInfo.messageId) }
-//            }
-//        }
-//    }
+    fun reloadOldMessage(optsAfterTaskId: String) {
+        val variables = optsAfterTaskId.split("_")
+        val metaInfoId = variables.getOrNull(0)?.toIntOrNull()
+        if (metaInfoId != null) {
+            val postCalendarMetaInfo = find(metaInfoId)
+            if (postCalendarMetaInfo != null) {
+                commandExecution.reloadCalendar(postCalendarMetaInfo)
+                        .success { bot.editOriginalCalendarMessage(it, postCalendarMetaInfo.chatId, postCalendarMetaInfo.messageId) }
+            }
+        }
+    }
 
     fun responseForDeeplinkAssignment(chatId: Long, opts: String) {
         if (opts.startsWith(assignDeepLinkCommand)) {
@@ -96,18 +96,18 @@ fun main(args: Array<String>) {
                 val response = commandExecution.executeCallback(originallyMessage.chat.id.toInt(), msgUser.id, msgUser.first_name, request, originallyMessage)
 
                 bot.callbackResponse(response, callbackQuery, originallyMessage)
-//                response.success {
-//                    if (request.startsWith(assingWithNameCallbackCommand) || request.startsWith(assingAnnonCallbackCommand)
-//                            || request.startsWith(unassignCallbackCommand)) {
-//                        val optsAfterTaskId = request
-//                                .removePrefix(assingWithNameCallbackCommand)
-//                                .removePrefix(assingAnnonCallbackCommand)
-//                                .removePrefix(unassignCallbackCommand)
-//                                .substringAfter("_")
-//
-//                        reloadOldMessage(optsAfterTaskId)
-//                    }
-//                }
+                response.success {
+                    if (request.startsWith(assingWithNameCallbackCommand) || request.startsWith(assingAnnonCallbackCommand)
+                            || request.startsWith(unassignCallbackCommand)) {
+                        val optsAfterTaskId = request
+                                .removePrefix(assingWithNameCallbackCommand)
+                                .removePrefix(assingAnnonCallbackCommand)
+                                .removePrefix(unassignCallbackCommand)
+                                .substringAfter("_")
+
+                        reloadOldMessage(optsAfterTaskId)
+                    }
+                }
             }
         }
     }

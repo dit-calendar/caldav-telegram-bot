@@ -4,7 +4,6 @@ import com.ditcalendar.bot.config.bot_name
 import com.ditcalendar.bot.config.config
 import com.ditcalendar.bot.domain.data.*
 import com.ditcalendar.bot.service.assignDeepLinkCommand
-import net.fortuna.ical4j.model.Calendar
 import net.fortuna.ical4j.model.component.VEvent
 import java.text.SimpleDateFormat
 

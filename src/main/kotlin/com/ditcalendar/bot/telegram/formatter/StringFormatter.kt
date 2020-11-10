@@ -1,9 +1,6 @@
 package com.ditcalendar.bot.telegram.formatter
 
 import com.ditcalendar.bot.domain.data.DitBotError
-import com.ditcalendar.bot.domain.data.InvalidRequest
-import com.ditcalendar.bot.domain.data.MultipleSubcalendarsFound
-import com.ditcalendar.bot.domain.data.NoSubcalendarFound
 
 const val reloadButtonText = "reload"
 const val calendarReloadCallbackNotification = "calendar was reloaded"

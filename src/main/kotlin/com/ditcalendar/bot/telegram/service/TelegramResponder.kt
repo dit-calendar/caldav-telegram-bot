@@ -79,12 +79,12 @@ fun Bot.deepLinkResponse(callbackOpts: String, chatId: Long) {
     sendMessage(chatId, "Can I use your name?", parseMode, true, markup = inlineKeyboardMarkup)
 }
 
-//fun Bot.editOriginalCalendarMessage(calendar: CalendarDTO, chatId: Long, messageId: Int) {
-//    val inlineButton = InlineKeyboardButton(reloadButtonText, callback_data = "$reloadCallbackCommand${calendar.name}_${calendar.startDate}_${calendar.endDate}")
-//    val inlineKeyboardMarkup = InlineKeyboardMarkup(listOf(listOf(inlineButton)))
-//    editMessageText(chatId, messageId, text = calendar.toMarkdown(),
-//            parseMode = parseMode, disableWebPagePreview = true, markup = inlineKeyboardMarkup)
-//}
+fun Bot.editOriginalCalendarMessage(calendar: CalendarDTO, chatId: Long, messageId: Int) {
+    val inlineButton = InlineKeyboardButton(reloadButtonText, callback_data = "$reloadCallbackCommand${calendar.name}_${calendar.startDate}_${calendar.endDate}")
+    val inlineKeyboardMarkup = InlineKeyboardMarkup(listOf(listOf(inlineButton)))
+    editMessageText(chatId, messageId, text = calendar.toMarkdown(),
+            parseMode = parseMode, disableWebPagePreview = true, markup = inlineKeyboardMarkup)
+}
 
 private fun CompletableFuture<Message>.handleCallbackQuery(bot: Bot, calbackQueryId: String, callbackNotificationText: String?) {
     this.handle { _, throwable ->

@@ -80,9 +80,9 @@ class CommandExecution(private val calendarService: CalendarService) {
         } else Result.error(InvalidRequest())
     }
 
-//    fun reloadCalendar(postCalendarMetaInfo: PostCalendarMetaInfo?): Result<CalendarDTO, Exception> {
-//        return if (postCalendarMetaInfo != null)
-//            calendarService.getCalendarAndTask(postCalendarMetaInfo.subCalendarName, postCalendarMetaInfo.startDate, postCalendarMetaInfo.endDate, postCalendarMetaInfo)
-//        else Result.error(InvalidRequest())
-//    }
+    fun reloadCalendar(postCalendarMetaInfo: PostCalendarMetaInfo?): Result<CalendarDTO, Exception> {
+        return if (postCalendarMetaInfo != null)
+            calendarService.getCalendarAndTask(postCalendarMetaInfo.subCalendarName, postCalendarMetaInfo.startDate, postCalendarMetaInfo.endDate, postCalendarMetaInfo)
+        else Result.error(InvalidRequest())
+    }
 }

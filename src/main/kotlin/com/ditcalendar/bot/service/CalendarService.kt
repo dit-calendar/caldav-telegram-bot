@@ -55,20 +55,6 @@ class CalendarService(private val calDavManager: CalDavManager) {
                 .map { it.fillWithTelegramLinks { task: VEvent, t: TelegramLinks -> TelegramTaskAfterUnassignment(task, t) } }
     }
 
-    //    private fun SubCalendar.fillWithTasks(startDate: String, endDate: String, postCalendarMetaInfo: PostCalendarMetaInfo) =
-//            this.apply {
-//                val tasksResulst = eventEndpoint.findEvents(this.id, startDate, endDate)
-//                val constructor = { task: Event, t: TelegramLinks -> TelegramTaskForAssignment(task, t, postCalendarMetaInfo.id.value) }
-//                tasksResulst.map {
-//                    this.apply {
-//                        this.startDate = startDate
-//                        this.endDate = endDate
-//                        this.tasks = it.events
-//                                .map { it.fillWithTelegramLinks(constructor) }
-//                    }
-//                }
-//            }
-//
     private inline fun <TelTask : TelegramTaskAssignment> VEvent.fillWithTelegramLinks(
             constructor: (task: VEvent, t: TelegramLinks) -> TelTask): TelTask {
         val assignedId: String? = this.getTelegramUserCalDavProperty()
