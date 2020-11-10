@@ -14,8 +14,8 @@ private val botName = config[bot_name]
 
 fun TelegramTaskAssignment.toMarkdown(): String {
     val formattedDescription =
-            if (task.description != null && task.description.value!!.isNotBlank())
-                System.lineSeparator() + task.description.value!!
+            if (task.description != null && task.description.value.isNotBlank())
+                System.lineSeparator() + task.description.value
                         .withMDEscape()
             else ""
     return when (this) {

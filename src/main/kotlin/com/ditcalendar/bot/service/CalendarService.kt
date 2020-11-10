@@ -16,7 +16,7 @@ class CalendarService(private val calDavManager: CalDavManager) {
     fun getCalendarAndTask(subCalendarName: String, startDate: String, endDate: String, chatId: Long, messageId: Int): Result<CalendarDTO, Exception> =
             calDavManager.findSubcalendarAndEvents(subCalendarName, startDate, endDate)
                     .map {
-                        var href = it.getProperty<Url>("URL")
+                        val href = it.getProperty<Url>("URL")
                         val postCalendarMetaInfo = findOrCreate(chatId, messageId, subCalendarName, startDate, endDate, href.value)
                         val tasks: List<VEvent> = it.components.getComponents("VEVENT")
                         val constructor = { task: VEvent, t: TelegramLinks -> TelegramTaskForAssignment(task, t, postCalendarMetaInfo.id.value) }
@@ -33,24 +33,28 @@ class CalendarService(private val calDavManager: CalDavManager) {
 
     fun assignUserToTask(taskId: String, telegramLink: TelegramLink, metaInfoId: Int): Result<TelegramTaskForUnassignment, Exception> {
         val postCalendarMetaInfo = find(metaInfoId)
-        return calDavManager
-                .findEvent(postCalendarMetaInfo!!.uri, taskId)
+        return if (postCalendarMetaInfo == null)
+            Result.error(PostCalendarMetaInfoIsUnknownForAssignment())
+        else calDavManager
+                .findEvent(postCalendarMetaInfo.uri, taskId)
                 .flatMap { oldTask ->
                     var who = oldTask.getTelegramUserCalDavProperty()
                     who = addUserToWho(who, telegramLink.telegramUserId.toString())
-                    calDavManager.updateEvent(postCalendarMetaInfo!!.uri, oldTask, who)
+                    calDavManager.updateEvent(postCalendarMetaInfo.uri, oldTask, who)
                 }
                 .map { it.fillWithTelegramLinks { task: VEvent, t: TelegramLinks -> TelegramTaskForUnassignment(task, t, metaInfoId) } }
     }
 
     fun unassignUserFromTask(taskId: String, telegramLink: TelegramLink, metaInfoId: Int): Result<TelegramTaskAfterUnassignment, Exception> {
         val postCalendarMetaInfo = find(metaInfoId)
-        return calDavManager
-                .findEvent(postCalendarMetaInfo!!.uri, taskId)
+        return if (postCalendarMetaInfo == null)
+            Result.error(PostCalendarMetaInfoIsUnknownForUnassignment())
+        else calDavManager
+                .findEvent(postCalendarMetaInfo.uri, taskId)
                 .flatMap { oldTask ->
                     var who = oldTask.getTelegramUserCalDavProperty()
                     who = removeUserFromWho(who, telegramLink.telegramUserId.toString())
-                    calDavManager.updateEvent(postCalendarMetaInfo!!.uri, oldTask, who)
+                    calDavManager.updateEvent(postCalendarMetaInfo.uri, oldTask, who)
                 }
                 .map { it.fillWithTelegramLinks { task: VEvent, t: TelegramLinks -> TelegramTaskAfterUnassignment(task, t) } }
     }

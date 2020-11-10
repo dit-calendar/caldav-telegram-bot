@@ -75,6 +75,7 @@ class CommandExecution(private val calendarService: CalendarService) {
         val endDate = variables.getOrNull(2)
 
         return if (subCalendarName != null && startDate != null && endDate != null) {
+            //TODO
             val postCalendarMetaInfo = findOrCreate(chatId, messageId, subCalendarName, startDate, endDate, "TODO")
             calendarService.getCalendarAndTask(subCalendarName, startDate, endDate, postCalendarMetaInfo)
         } else Result.error(InvalidRequest())
