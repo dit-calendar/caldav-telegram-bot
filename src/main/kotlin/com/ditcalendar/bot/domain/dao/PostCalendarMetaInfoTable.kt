@@ -17,15 +17,19 @@ object PostCalendarMetaInfoTable : IntIdTable() {
 fun findOrCreate(newChatId: Long, msgUserId: Int, subCalendar: String, start: String, end: String, href: String): PostCalendarMetaInfo = transaction {
     val result = PostCalendarMetaInfo.find { PostCalendarMetaInfoTable.messageId eq msgUserId }
     if (result.count() == 0L) {
-        PostCalendarMetaInfo.new {
-            chatId = newChatId
-            messageId = msgUserId
-            subCalendarName = subCalendar
-            startDate = start
-            endDate = end
-            uri = href
-        }
+        create(newChatId, msgUserId, subCalendar, start, end, href)
     } else result.elementAt(0)
+}
+
+fun create(newChatId: Long, msgUserId: Int, subCalendar: String, start: String, end: String, href: String): PostCalendarMetaInfo = transaction {
+    PostCalendarMetaInfo.new {
+        chatId = newChatId
+        messageId = msgUserId
+        subCalendarName = subCalendar
+        startDate = start
+        endDate = end
+        uri = href
+    }
 }
 
 fun findByMessageId(id: Int): PostCalendarMetaInfo? = transaction {

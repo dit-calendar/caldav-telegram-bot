@@ -1,5 +1,7 @@
 package com.ditcalendar.bot.service
 
+import com.ditcalendar.bot.domain.dao.create
+import com.ditcalendar.bot.domain.dao.findByMessageId
 import com.ditcalendar.bot.domain.dao.findOrCreate
 import com.ditcalendar.bot.domain.dao.updateName
 import com.ditcalendar.bot.domain.data.*
@@ -75,8 +77,13 @@ class CommandExecution(private val calendarService: CalendarService) {
         val endDate = variables.getOrNull(2)
 
         return if (subCalendarName != null && startDate != null && endDate != null) {
-            //TODO
-            val postCalendarMetaInfo = findOrCreate(chatId, messageId, subCalendarName, startDate, endDate, "TODO")
+            var postCalendarMetaInfo = findByMessageId(messageId)
+            if (postCalendarMetaInfo == null) {
+                val result = calendarService.findSubCalendarHref(subCalendarName)
+                if (result.component1() == null)
+                    return Result.error(result.component2()!!)
+                postCalendarMetaInfo = create(chatId, messageId, subCalendarName, startDate, endDate, result.get())
+            }
             calendarService.getCalendarAndTask(subCalendarName, startDate, endDate, postCalendarMetaInfo)
         } else Result.error(InvalidRequest())
     }

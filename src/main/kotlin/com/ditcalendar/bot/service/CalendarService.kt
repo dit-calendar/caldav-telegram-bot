@@ -59,6 +59,8 @@ class CalendarService(private val calDavManager: CalDavManager) {
                 .map { it.fillWithTelegramLinks { task: VEvent, t: TelegramLinks -> TelegramTaskAfterUnassignment(task, t) } }
     }
 
+    fun findSubCalendarHref(subCalendarName: String) = calDavManager.findSubCalendarHref(subCalendarName)
+
     private inline fun <TelTask : TelegramTaskAssignment> VEvent.fillWithTelegramLinks(
             constructor: (task: VEvent, t: TelegramLinks) -> TelTask): TelTask {
         val assignedId: String? = this.getTelegramUserCalDavProperty()

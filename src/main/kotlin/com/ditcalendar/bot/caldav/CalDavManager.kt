@@ -9,6 +9,7 @@ import com.github.caldav4j.CalDAVCollection
 import com.github.caldav4j.methods.CalDAV4JMethodFactory
 import com.github.caldav4j.util.GenerateQuery
 import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import net.fortuna.ical4j.model.Calendar
 import net.fortuna.ical4j.model.DateTime
@@ -49,13 +50,10 @@ class CalDavManager {
                 .build()
     }
 
-    fun findSubcalendarAndEvents(subCalendarName: String, startDate: String, endDate: String): Result<Calendar, Exception> {
-        //System.setProperty("ical4j.unfolding.relaxed", "true")
+    fun findSubCalendarHref(subCalendarName: String): Result<String, Exception> {
         System.setProperty("ical4j.parsing.relaxed", "true")
+        //TODO
         val uri = "http://localhost:8080/remote.php/dav/calendars/admin/"
-
-        val start = DateTime(df.parse("${startDate}T00:00"))
-        val end = DateTime(df.parse("${endDate}T04:00"))
 
         val factory = CalDAV4JMethodFactory()
         val propertyNameSet = DavPropertyNameSet()
@@ -69,11 +67,17 @@ class CalDavManager {
             val davProperties = multiStatusResponse.getProperties(200)
             val displayName = davProperties[DavPropertyName.PROPERTY_DISPLAYNAME]
 
-            if (displayName != null && displayName.value.toString() == subCalendarName) {
-                return getCalendarAndEvents(multiStatusResponse.href, subCalendarName, start, end)
-            }
+            if (displayName != null && displayName.value.toString() == subCalendarName)
+                return Result.success(multiStatusResponse.href)
         }
         return Result.error(NoSubcalendarFound(subCalendarName))
+    }
+
+    fun findSubcalendarAndEvents(subCalendarName: String, startDate: String, endDate: String): Result<Calendar, Exception> {
+        val start = DateTime(df.parse("${startDate}T00:00"))
+        val end = DateTime(df.parse("${endDate}T04:00"))
+
+        return findSubCalendarHref(subCalendarName).flatMap { getCalendarAndEvents(it, subCalendarName, start, end) }
     }
 
     private fun getCalendarAndEvents(href: String, subCalendarName: String, startDate: DateTime, endDate: DateTime): Result<Calendar, Exception> {
