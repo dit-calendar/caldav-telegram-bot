@@ -29,7 +29,7 @@ import java.net.URI
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 
-const val telegramUserCalDavProperty: String = "TELEGRAM-USER"
+const val telegramUserCalDavProperty: String = "X-TELEGRAM-USER"
 
 class CalDavManager {
 
