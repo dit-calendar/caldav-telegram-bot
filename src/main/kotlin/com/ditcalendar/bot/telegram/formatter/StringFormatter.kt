@@ -1,27 +1,18 @@
 package com.ditcalendar.bot.telegram.formatter
 
 import com.ditcalendar.bot.domain.data.DitBotError
+import org.apache.jackrabbit.webdav.DavException
+import java.net.UnknownHostException
 
 const val reloadButtonText = "reload"
 const val calendarReloadCallbackNotification = "calendar was reloaded"
 
 fun parseErrorToString(error: Exception): String =
         when (error) {
-//            is FuelError -> {
-//                when (error.response.statusCode) {
-//                    401 -> "Bot is missing necessary access rights"
-//                    403 -> "Bot is missing necessary access rights"
-//                    404 -> "calendar or task not found"
-//                    503 -> "server not reachable, try again in a moment"
-//                    else -> if (error.cause is JsonDecodingException) {
-//                        "unexpected server response"
-//                    } else if (error.message != null)
-//                        "Error: " + error.message.toString()
-//                    else "unkown Error"
-//                }
-//            }
-            is DitBotError -> {
-                error.message!!
+            is DitBotError -> error.message!!
+            else -> when (error.cause) {
+                is DavException -> "parsing error for calDav response. Please check your calDav url or server"
+                is UnknownHostException -> "wrong calDav url"
+                else -> "unknown error"
             }
-            else -> "unknown error"
         }.withMDEscape()

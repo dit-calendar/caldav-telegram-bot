@@ -25,6 +25,7 @@ import org.apache.http.client.CredentialsProvider
 import org.apache.http.client.HttpClient
 import org.apache.http.impl.client.BasicCredentialsProvider
 import org.apache.http.impl.client.HttpClientBuilder
+import org.apache.jackrabbit.webdav.MultiStatus
 import org.apache.jackrabbit.webdav.property.DavPropertyName
 import org.apache.jackrabbit.webdav.property.DavPropertyNameSet
 import java.net.URI
@@ -58,10 +59,17 @@ class CalDavManager {
         val propertyNameSet = DavPropertyNameSet()
         val propertyName = DavPropertyName.create(DavPropertyName.PROPERTY_DISPLAYNAME)
         propertyNameSet.add(propertyName)
+
         val method = factory.createPropFindMethod(calDavBaseUri, propertyNameSet, 1)
 
-        val response: HttpResponse = httpclient.execute(method)
-        val multiStatusResponses = method.getResponseBodyAsMultiStatus(response)
+        val multiStatusResult = Result.of<MultiStatus, java.lang.Exception> {
+            val response: HttpResponse = httpclient.execute(method)
+            method.getResponseBodyAsMultiStatus(response)
+        }
+        if (multiStatusResult.component2() != null)
+            return Result.error(Exception(multiStatusResult.component2()))
+
+        val multiStatusResponses = multiStatusResult.component1()!!
         for (multiStatusResponse in multiStatusResponses.responses) {
             val davProperties = multiStatusResponse.getProperties(200)
             val displayName = davProperties[DavPropertyName.PROPERTY_DISPLAYNAME]
