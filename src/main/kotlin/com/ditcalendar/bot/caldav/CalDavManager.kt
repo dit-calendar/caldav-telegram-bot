@@ -13,6 +13,7 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import net.fortuna.ical4j.model.Calendar
+import net.fortuna.ical4j.model.Component
 import net.fortuna.ical4j.model.DateTime
 import net.fortuna.ical4j.model.component.VEvent
 import net.fortuna.ical4j.model.property.Url
@@ -80,10 +81,9 @@ class CalDavManager {
 
     private fun getCalendarAndEvents(href: String, subCalendarName: String, startDate: DateTime, endDate: DateTime): Result<Calendar, Exception> {
         val gq = GenerateQuery()
-        gq.setFilterComponent("VEVENT")
+        gq.setFilterComponent(Component.VEVENT)
         gq.setTimeRange(startDate, endDate)
         gq.setFilterComponentProperties(listOf("STATUS!=CANCELLED"))
-        //gq.setFilter("VEVENT [20200801T173752Z;20200910T173752Z] : STATUS!=CANCELLED")
         val calendarQuery = gq.generate()
         val calClient = buildCalDAVCollection(href)
         val calendars = calClient.queryCalendars(httpclient, calendarQuery)
@@ -98,14 +98,14 @@ class CalDavManager {
 
     fun findEvent(href: String, eventUUID: String): Result<VEvent, Exception> {
         val gq = GenerateQuery()
-        gq.setComponent("VEVENT")
+        gq.setComponent(Component.VEVENT)
         val calClient = buildCalDAVCollection(href)
-        val calendar = calClient.queryCalendar(httpclient, "VEVENT", eventUUID, null)
+        val calendar = calClient.queryCalendar(httpclient, Component.VEVENT, eventUUID, null)
 
         return if (calendar == null)
             Result.error(NoSubcalendarFound(href))
         else
-            Result.success(calendar.getComponent("VEVENT") as VEvent)
+            Result.success(calendar.getComponent(Component.VEVENT) as VEvent)
     }
 
     fun updateEvent(href: String, event: VEvent, who: String): Result<VEvent, Exception> {
@@ -118,7 +118,6 @@ class CalDavManager {
     private fun buildCalDAVCollection(href: String): CalDAVCollection {
         val caldavUrl = URI(calDavBaseUri)
         val baseUri = "${caldavUrl.scheme}://${caldavUrl.authority}"
-        val calClient = CalDAVCollection("$baseUri$href")
-        return calClient
+        return CalDAVCollection("$baseUri$href")
     }
 }
