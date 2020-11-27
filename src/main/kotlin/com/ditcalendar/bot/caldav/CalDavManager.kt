@@ -99,8 +99,11 @@ class CalDavManager {
         return if (calendars.isEmpty()) {
             Result.error(NoEventsFound(subCalendarName))
         } else {
-            calendars.first().properties.add(Url(URI(href)))
-            Result.success(calendars.first())
+            //TODO events zusammensetzen
+            val firstCalendar = calendars.first()
+            firstCalendar.properties.add(Url(URI(href)))
+            val cal = calendars.drop(1).fold(firstCalendar, ::aggregateCalendar)
+            Result.success(cal)
         }
     }
 
@@ -121,6 +124,11 @@ class CalDavManager {
         event.properties.removeAll { it.name == telegramUserCalDavProperty }
         event.properties.add(XProperty(telegramUserCalDavProperty, who))
         return Result.of<Unit, Exception> { calClient.updateMasterEvent(httpclient, event, null) }.map { event }
+    }
+
+    private fun aggregateCalendar(l: Calendar, r: Calendar): Calendar {
+        l.components.addAll(r.getComponents(Component.VEVENT))
+        return l
     }
 
     private fun buildCalDAVCollection(href: String): CalDAVCollection {

@@ -12,4 +12,3 @@ class NoSubcalendarFound(name: String) : DitBotError("no subcalendar found with 
 class NoEventsFound(name: String) : DitBotError("no events in subcalendar with name $name found")
 class PostCalendarMetaInfoIsUnknownForUnassignment : DitBotError("unexpected error, try to assign and unassign again")
 class PostCalendarMetaInfoIsUnknownForAssignment : DitBotError("unexpected error, try to reload the calendar in original post")
-class MultipleSubcalendarsFound : DitBotError("found more than one subcalendar")
