@@ -19,6 +19,15 @@
     },
     "BOT_NAME": {
       "description": "username of your telegram bot. Without '@'"
+    },
+    "CALDAV_BASE_URL": {
+      "description": "the base url to your CalDAV calendar. Typically the url ends with /dav. You can probably find it in the calendar settings/imports."
+    },
+    "CALDAV_USER_NAME": {
+      "description": "username of your CalDAV calendar user"
+    },
+    "CALDAV_USER_PASSWORD": {
+      "description": "password for your CalDAV calendar user"
     }
   }
 }
