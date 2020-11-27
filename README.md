@@ -11,7 +11,19 @@ you can post it in your telegram group/channel, so a person can assign hirself
 
 
 # how to use
-TODO
+To use this application in your telegram group, you must first complete following steps:
+1. open your calendar and find the CalDAV addresse
+   * the url should look like https://www.xxx.xxx/dav and ends with `/dav`. probably found in the calendar settings/imports.
+2. create a telegram Bot
+   * start a conversation with [@Botfather](https://t.me/botfather) and write `/newbot`
+   * give your Bot a name, maybe a nice picture and **please mention this website in your Bot description**
+3. start the program for your telegram Bot by clicking on
+    [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/dit-calendar/caldav-telegram-bot/tree/master) _(you need an account but it's free)_
+   * it will build&start the program from the current source code
+4. invite the new Bot to a telegram group/channel and post `/postcalendar CalendarName Date` e.g. `/postcalendar VoKü 2020-11-25`
+
+**This application is in beta** and will be further developed after some [feedback](https://github.com/dit-calendar/caldav-telegram-bot/issues) from you.
+
 ### how to update
 After this program is deployed to heroku **it will not be updated automatically!** If you are interested in more features, you should check out [new releases](https://github.com/dit-calendar/caldav-telegram-bot/releases) from time to time.
 
