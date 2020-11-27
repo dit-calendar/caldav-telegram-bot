@@ -2,13 +2,14 @@ package com.ditcalendar.bot.config
 
 import com.natpryce.konfig.*
 import com.natpryce.konfig.ConfigurationProperties.Companion.systemProperties
+import java.io.File
 
 
 fun config(): Lazy<Configuration> {
     return lazy {
         systemProperties() overriding
                 EnvironmentVariables() overriding
-                ConfigurationProperties.fromResource("dev.properties") overriding
+                ConfigurationProperties.fromOptionalFile(File ("src/main/resources/dev.properties")) overriding
                 ConfigurationProperties.fromResource("config.properties")
     }
 }
