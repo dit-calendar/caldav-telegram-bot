@@ -11,7 +11,7 @@ object PostCalendarMetaInfoTable : IntIdTable() {
     val subCalendarName = varchar("subCalendarName", 50)
     val startDate = varchar("startDate", 50)
     val endDate = varchar("endDate", 50)
-    val uri = varchar("uri", 50)
+    val uri = varchar("uri", 100)
 }
 
 fun findOrCreate(newChatId: Long, msgUserId: Int, subCalendar: String, start: String, end: String, href: String): PostCalendarMetaInfo = transaction {
