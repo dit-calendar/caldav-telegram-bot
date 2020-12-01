@@ -39,10 +39,10 @@ class CalDavManager {
     private val df: DateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm")
     private val config by config()
     private val httpclient: HttpClient
-    private val calDavBaseUri = config[caldav_base_url]
+    private val calDavBaseUri = config[caldav_base_url].removeSuffix("/")
+    private val calDavUser = config[caldav_user_name]
 
     init {
-        val calDavUser = config[caldav_user_name]
         val calDavPassword = config[caldav_user_password]
 
         val provider: CredentialsProvider = BasicCredentialsProvider()
@@ -60,7 +60,7 @@ class CalDavManager {
         val propertyName = DavPropertyName.create(DavPropertyName.PROPERTY_DISPLAYNAME)
         propertyNameSet.add(propertyName)
 
-        val method = factory.createPropFindMethod(calDavBaseUri, propertyNameSet, 1)
+        val method = factory.createPropFindMethod("$calDavBaseUri/calendars/$calDavUser", propertyNameSet, 1)
 
         val multiStatusResult = Result.of<MultiStatus, java.lang.Exception> {
             val response: HttpResponse = httpclient.execute(method)
@@ -99,7 +99,6 @@ class CalDavManager {
         return if (calendars.isEmpty()) {
             Result.error(NoEventsFound(subCalendarName))
         } else {
-            //TODO events zusammensetzen
             val firstCalendar = calendars.first()
             firstCalendar.properties.add(Url(URI(href)))
             val cal = calendars.drop(1).fold(firstCalendar, ::aggregateCalendar)
