@@ -1,19 +1,19 @@
 # caldav-telegram-bot [![Build Status](https://travis-ci.org/dit-calendar/caldav-telegram-bot.svg?branch=master)](https://travis-ci.org/dit-calendar/caldav-telegram-bot)
-This is a tool to allow user-event assignment via telegram for any CalDAV calendar (e.g. nextcloud, google calendar, outlook, [etc.](https://en.wikipedia.org/wiki/CalDAV#Server)). It designed to help (public/collective/participatory/collaborative) groups with self-administration of work.
+This is a tool to allow user-event assignment via [telegram](https://telegram.org/) for any CalDAV calendar (e.g. nextcloud, google calendar, outlook, [etc.](https://en.wikipedia.org/wiki/CalDAV#Server)). It is designed to help (public/collective/participatory/collaborative) groups with self-administration of work.
 
-> :octocat: Alternatively,  [other calendars](https://github.com/dit-calendar/dit-calendar.github.io) are also supported.
+> :octocat: Alternatively, [other calendars](https://github.com/dit-calendar/dit-calendar.github.io) are also supported.
 
 after you created an event or task in your calendar
 <img src="doc/img/nexcloud-calendar.png" alt="calendar"/>
 
-you can post it in your telegram group/channel, so a person can assign hirself
+post it in your telegram group/channel, so a person can assign hirself
 <img src="doc/img/telegram-bot.gif" alt="telegram"/>
 
 
 # how to use
 To use this application in your telegram group, you must first complete following steps:
 1. open your calendar and find the CalDAV addresse
-   * the url should look like https://www.xxx.xxx/dav and ends with `/dav`. probably found in the calendar settings/imports.
+   * the url should end with `/dav`. probably found under calendar settings/imports.
 2. create a telegram Bot
    * start a conversation with [@Botfather](https://t.me/botfather) and write `/newbot`
    * give your Bot a name, maybe a nice picture and **please mention this website in your Bot description**
@@ -23,6 +23,7 @@ To use this application in your telegram group, you must first complete followin
 4. invite the new Bot to a telegram group/channel and post `/postcalendar CalendarName Date` e.g. `/postcalendar VoKü 2020-11-25`
 
 **This application is in beta** and will be further developed after some [feedback](https://github.com/dit-calendar/caldav-telegram-bot/issues) from you.
+**So far its only tested with nextcloud.** If you encounter a problem with another calendar, please create a bugticket.
 
 ### how to update
 After this program is deployed to heroku **it will not be updated automatically!** If you are interested in more features, you should check out [new releases](https://github.com/dit-calendar/caldav-telegram-bot/releases) from time to time.
