@@ -7,8 +7,7 @@ after you created an event or task in your calendar
 <img src="doc/img/nexcloud-calendar.png" alt="calendar"/>
 
 you can post it in your telegram group/channel, so a person can assign hirself
-
-TODO
+<img src="doc/img/telegram-bot.gif" alt="telegram"/>
 
 
 # how to use
