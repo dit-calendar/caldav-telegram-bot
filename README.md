@@ -1,5 +1,5 @@
 # caldav-telegram-bot [![Build Status](https://travis-ci.org/dit-calendar/caldav-telegram-bot.svg?branch=master)](https://travis-ci.org/dit-calendar/caldav-telegram-bot)
-This is a tool to allow user-event assignment via [telegram](https://telegram.org/) for any CalDAV calendar (e.g. nextcloud, google calendar, outlook, [etc.](https://en.wikipedia.org/wiki/CalDAV#Server)). It is designed to help (public/collective/participatory/collaborative) groups with self-administration of work.
+This is a tool to allow user-event assignment via [telegram](https://telegram.org/) for any CalDAV calendar (e.g. nextcloud, google calendar, outlook, [etc.](https://en.wikipedia.org/wiki/CalDAV#Server)). It is designed to help (public/collective/participatory/collaborative) groups to organize work.
 
 > :octocat: Alternatively, [other calendars](https://github.com/dit-calendar/dit-calendar.github.io) are also supported.
 
@@ -13,7 +13,9 @@ post it in your telegram group/channel, so a person can assign hirself
 # how to use
 To use this application in your telegram group, you must first complete following steps:
 1. open your calendar and find the CalDAV addresse
-   * the url should end with `/dav`. probably found under calendar settings/imports.
+   * the url should end with `/dav`. probably found under calendar settings/imports. For example in nextcloud under:
+     
+     <img src="doc/img/caldav-nextcloud.png" alt="nextcloud-settings"/>
 2. create a telegram Bot
    * start a conversation with [@Botfather](https://t.me/botfather) and write `/newbot`
    * give your Bot a name, maybe a nice picture and **please mention this website in your Bot description**
