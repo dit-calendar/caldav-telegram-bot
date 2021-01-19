@@ -18,7 +18,7 @@ import com.github.kittinunf.result.success
 val helpMessage =
         """
             Commands which the bot accepts
-            /postcalendar {Subcalendar name} {start date as yyyy-MM-dd} {optional end date as yyyy-MM-dd} = Post subcalendar in channel
+            /postcalendar {Subcalendar name} {start date as yyyy-MM-dd} = Post subcalendar in channel
             /help = show all bot commands
         """.trimIndent()
 
