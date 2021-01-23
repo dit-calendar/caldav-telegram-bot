@@ -4,7 +4,7 @@ group = "dit-calendar"
 version = "0.9.1-SNAPSHOT"
 
 plugins {
-    val kotlinVersion = "1.4.10"
+    val kotlinVersion = "1.4.21"
 
     application
 
@@ -25,9 +25,9 @@ repositories {
 }
 
 dependencies {
-    val kittinunfResultVersion = "3.1.0"
+    val kittinunfResultVersion = "4.0.0"
     val konfigVersion = "1.6.10.0"
-    val ktBotVersion = "1.3.5"
+    val ktBotVersion = "1.3.8"
     val exposedVersion = "0.28.1"
     val postgresqlVersion = "42.2.16"
     val calDavVersion = "1.0.1"

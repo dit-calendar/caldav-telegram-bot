@@ -23,20 +23,20 @@ import java.util.concurrent.CompletableFuture
 const val parseMode = "MarkdownV2"
 const val wrongRequestResponse = "request invalid"
 
-fun Bot.commandResponse(response: Result<CalendarDTO, Exception>, chatId: Long): CompletableFuture<Message> =
+fun Bot.commandResponse(response: Result<CalendarDTO, Exception>, chatId: Long): CompletableFuture<out Message> =
         when (response) {
             is Result.Success ->
                 when (val responseObject = response.value) {
                     is CalendarDTO -> {
                         val inlineButton = InlineKeyboardButton(reloadButtonText, callback_data = "$reloadCallbackCommand${responseObject.name}_${responseObject.startDate}_${responseObject.endDate}")
                         val inlineKeyboardMarkup = InlineKeyboardMarkup(listOf(listOf(inlineButton)))
-                        sendMessage(chatId, responseObject.toMarkdown() + System.lineSeparator(), parseMode, true, markup = inlineKeyboardMarkup)
+                        sendMessage(chatId, responseObject.toMarkdown() + System.lineSeparator(), parseMode, disableWebPagePreview = true, markup = inlineKeyboardMarkup)
                     }
                     else ->
-                        sendMessage(chatId, "internal server error", parseMode, true)
+                        sendMessage(chatId, "internal server error", parseMode, disableWebPagePreview = true)
                 }
             is Result.Failure ->
-                sendMessage(chatId, parseErrorToString(response.error), parseMode, true)
+                sendMessage(chatId, parseErrorToString(response.error), parseMode, disableWebPagePreview = true)
         }
 
 fun Bot.callbackResponse(response: Result<BaseDTO, Exception>, callbackQuery: CallbackQuery, originallyMessage: Message) {
@@ -76,7 +76,7 @@ fun Bot.deepLinkResponse(callbackOpts: String, chatId: Long) {
     val assignMeButton = InlineKeyboardButton("With telegram name", callback_data = assingWithNameCallbackCommand + callbackOpts)
     val anonAssignMeButton = InlineKeyboardButton("anonymous", callback_data = assingAnnonCallbackCommand + callbackOpts)
     val inlineKeyboardMarkup = InlineKeyboardMarkup(listOf(listOf(assignMeButton, anonAssignMeButton)))
-    sendMessage(chatId, "Can I use your name?", parseMode, true, markup = inlineKeyboardMarkup)
+    sendMessage(chatId, "Can I use your name?", parseMode, disableWebPagePreview = true, markup = inlineKeyboardMarkup)
 }
 
 fun Bot.editOriginalCalendarMessage(calendar: CalendarDTO, chatId: Long, messageId: Int) {
@@ -86,7 +86,7 @@ fun Bot.editOriginalCalendarMessage(calendar: CalendarDTO, chatId: Long, message
             parseMode = parseMode, disableWebPagePreview = true, markup = inlineKeyboardMarkup)
 }
 
-private fun CompletableFuture<Message>.handleCallbackQuery(bot: Bot, calbackQueryId: String, callbackNotificationText: String?) {
+private fun CompletableFuture<out Message>.handleCallbackQuery(bot: Bot, calbackQueryId: String, callbackNotificationText: String?) {
     this.handle { _, throwable ->
         if (throwable == null || throwable.message!!.contains("Bad Request: message is not modified"))
             if (callbackNotificationText != null)
