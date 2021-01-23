@@ -3,6 +3,12 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 group = "dit-calendar"
 version = "0.9.1-SNAPSHOT"
 
+application {
+    mainClass.set("com.ditcalendar.bot.BotKt")
+    // Required by the 'shadowJar' task
+    project.setProperty("mainClassName", "com.ditcalendar.bot.BotKt")
+}
+
 plugins {
     val kotlinVersion = "1.4.21"
 
@@ -11,10 +17,6 @@ plugins {
     kotlin("jvm") version kotlinVersion
 
     id("com.github.johnrengelman.shadow") version "5.2.0"
-}
-
-application {
-    mainClass.set("com.ditcalendar.bot.BotKt")
 }
 
 repositories {
