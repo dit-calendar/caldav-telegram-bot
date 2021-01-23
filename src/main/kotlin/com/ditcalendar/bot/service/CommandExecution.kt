@@ -52,12 +52,13 @@ class CommandExecution(private val calendarService: CalendarService) {
     }
 
     fun executePublishCalendarCommand(opts: String, msg: Message): Result<CalendarDTO, Exception> {
-        val variables = opts.split(" ")
-        val subCalendarName = variables.getOrNull(0)
-        val startDate = variables.getOrNull(1)
-        var endDate = variables.getOrNull(2)
+        val splitOnDate = opts.split(Regex("\\d{4}-\\d{2}-\\d{2}"))
+        val variablesAfterCalendarName = opts.removePrefix(splitOnDate.first()).split(" ")
+        val subCalendarName = splitOnDate.first().trimEnd()
+        val startDate = variablesAfterCalendarName.getOrNull(0)
+        var endDate = variablesAfterCalendarName.getOrNull(1)
 
-        return if (subCalendarName != null && subCalendarName.isNotBlank() && startDate != null) {
+        return if (subCalendarName.isNotBlank() && startDate != null) {
 
             if (isDateInputValid(startDate, endDate)) {
                 if (endDate == null)
