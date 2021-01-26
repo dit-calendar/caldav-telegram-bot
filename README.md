@@ -1,4 +1,4 @@
-# caldav-telegram-bot [![Build Status](https://travis-ci.org/dit-calendar/caldav-telegram-bot.svg?branch=master)](https://travis-ci.org/dit-calendar/caldav-telegram-bot)
+# caldav-telegram-bot [![Build Status](https://travis-ci.com/dit-calendar/caldav-telegram-bot.svg?branch=master)](https://travis-ci.com/dit-calendar/caldav-telegram-bot)
 
 This bot lets you post events (tasks or room bookings) from any CalDAV calendar (e.g. nextcloud, google calendar, outlook, [etc.](https://en.wikipedia.org/wiki/CalDAV#Server)) into a [telegram](https://telegram.org/) chat group, so people can sign up for them. It's designed to help (public/collective/participatory/collaborative) groups to organize work.
 
