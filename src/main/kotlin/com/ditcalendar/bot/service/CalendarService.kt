@@ -42,7 +42,7 @@ class CalendarService(private val calDavManager: CalDavManager) {
                 .flatMap { oldTask ->
                     var who = oldTask.getTelegramUserCalDavProperty()
                     who = addUserToWho(who, telegramLink.telegramUserId.toString())
-                    calDavManager.updateEvent(postCalendarMetaInfo.uri, oldTask, who)
+                    calDavManager.updateEvent(postCalendarMetaInfo.uri, oldTask, who, postCalendarMetaInfo.startDate)
                 }
                 .map { it.fillWithTelegramLinks { task: VEvent, t: TelegramLinks -> TelegramTaskForUnassignment(task, t, metaInfoId) } }
     }
@@ -56,7 +56,7 @@ class CalendarService(private val calDavManager: CalDavManager) {
                 .flatMap { oldTask ->
                     var who = oldTask.getTelegramUserCalDavProperty()
                     who = removeUserFromWho(who, telegramLink.telegramUserId.toString())
-                    calDavManager.updateEvent(postCalendarMetaInfo.uri, oldTask, who)
+                    calDavManager.updateEvent(postCalendarMetaInfo.uri, oldTask, who, postCalendarMetaInfo.startDate)
                 }
                 .map { it.fillWithTelegramLinks { task: VEvent, t: TelegramLinks -> TelegramTaskAfterUnassignment(task, t) } }
     }

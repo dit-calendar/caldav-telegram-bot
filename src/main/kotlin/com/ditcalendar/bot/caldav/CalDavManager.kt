@@ -9,15 +9,13 @@ import com.ditcalendar.bot.domain.data.NoSubcalendarFound
 import com.github.caldav4j.CalDAVCollection
 import com.github.caldav4j.methods.CalDAV4JMethodFactory
 import com.github.caldav4j.util.GenerateQuery
+import com.github.caldav4j.util.ICalendarUtils
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
-import net.fortuna.ical4j.model.Calendar
-import net.fortuna.ical4j.model.Component
-import net.fortuna.ical4j.model.DateTime
+import net.fortuna.ical4j.model.*
 import net.fortuna.ical4j.model.component.VEvent
-import net.fortuna.ical4j.model.property.Url
-import net.fortuna.ical4j.model.property.XProperty
+import net.fortuna.ical4j.model.property.*
 import org.apache.http.HttpResponse
 import org.apache.http.auth.AuthScope
 import org.apache.http.auth.UsernamePasswordCredentials
@@ -118,11 +116,28 @@ class CalDavManager {
             Result.success(calendar.getComponent(Component.VEVENT) as VEvent)
     }
 
-    fun updateEvent(href: String, event: VEvent, who: String): Result<VEvent, Exception> {
+    fun updateEvent(href: String, event: VEvent, who: String, startDate: String): Result<VEvent, Exception> {
         val calClient = buildCalDAVCollection(href)
         event.properties.removeAll { it.name == telegramUserCalDavProperty }
         event.properties.add(XProperty(telegramUserCalDavProperty, who))
-        return Result.of<Unit, Exception> { calClient.updateMasterEvent(httpclient, event, null) }.map { event }
+        val eventResult = Result.of<Unit, Exception> {
+            if (event.getProperty<Property>(Property.RRULE) == null)
+                calClient.updateMasterEvent(httpclient, event, null)
+            else {
+                val uid: String = ICalendarUtils.getUIDValue(event)
+                val calendar = calClient.getCalendarForEventUID(httpclient, uid)
+                event.properties.remove(event.created)
+                event.properties.remove(event.dateStamp)
+                event.properties.add(Created())
+                event.properties.add(DtStamp())
+                event.properties.remove(event.getProperty(Property.RRULE))
+                event.properties.add(RecurrenceId())
+                calendar.components.add(event)
+                calClient.add(httpclient, calendar)
+            }
+        }
+        return eventResult.map { event }
+
     }
 
     private fun aggregateCalendar(l: Calendar, r: Calendar): Calendar {
