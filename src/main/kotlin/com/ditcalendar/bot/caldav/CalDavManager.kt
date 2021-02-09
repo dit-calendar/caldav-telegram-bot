@@ -6,14 +6,15 @@ import com.ditcalendar.bot.config.caldav_user_password
 import com.ditcalendar.bot.config.config
 import com.ditcalendar.bot.domain.data.NoEventsFound
 import com.ditcalendar.bot.domain.data.NoSubcalendarFound
-import com.github.caldav4j.CalDAVCollection
 import com.github.caldav4j.methods.CalDAV4JMethodFactory
 import com.github.caldav4j.util.GenerateQuery
-import com.github.caldav4j.util.ICalendarUtils
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
-import net.fortuna.ical4j.model.*
+import net.fortuna.ical4j.model.Calendar
+import net.fortuna.ical4j.model.Component
+import net.fortuna.ical4j.model.DateTime
+import net.fortuna.ical4j.model.Property
 import net.fortuna.ical4j.model.component.VEvent
 import net.fortuna.ical4j.model.property.*
 import org.apache.http.HttpResponse
@@ -124,20 +125,41 @@ class CalDavManager {
             if (event.getProperty<Property>(Property.RRULE) == null)
                 calClient.updateMasterEvent(httpclient, event, null)
             else {
-                val uid: String = ICalendarUtils.getUIDValue(event)
-                val calendar = calClient.getCalendarForEventUID(httpclient, uid)
-                event.properties.remove(event.created)
-                event.properties.remove(event.dateStamp)
-                event.properties.add(Created())
-                event.properties.add(DtStamp())
-                event.properties.remove(event.getProperty(Property.RRULE))
-                event.properties.add(RecurrenceId())
-                calendar.components.add(event)
-                calClient.add(httpclient, calendar)
+                updateScheduledEventProperties(event, startDate)
+                calClient.addRecurrentEvent(httpclient, event, null)
             }
         }
         return eventResult.map { event }
 
+    }
+
+    /**
+     * Parent of an recurrent Event, which we can recognize by RRULE, have to be created with same UUID as parent,
+     * but with another DTStart and DTEnd.
+     * https://icalevents.com/4437-correct-handling-of-uid-recurrence-id-sequence/
+     */
+    private fun updateScheduledEventProperties(event: VEvent, startDate: String) {
+        event.properties.remove(event.created)
+        event.properties.remove(event.dateStamp)
+        event.properties.add(Created())
+        event.properties.add(DtStamp())
+
+        event.properties.remove(event.getProperty(Property.RRULE))
+
+        event.properties.remove(event.getProperty(Property.SEQUENCE))
+        event.properties.add(Sequence())
+
+        val dtStart = event.getProperty<DtStart>(Property.DTSTART)
+        val newDtStart = dtStart.value.replaceBefore("T", startDate.replace("-", ""))
+        event.properties.remove(event.getProperty(Property.DTSTART))
+        event.properties.add(DtStart(newDtStart, dtStart.timeZone))
+
+        val dtEnd = event.getProperty<DtEnd>(Property.DTEND)
+        val newDtEnd = dtEnd.value.replaceBefore("T", startDate.replace("-", ""))
+        event.properties.remove(event.getProperty(Property.DTEND))
+        event.properties.add(DtEnd(newDtEnd, dtEnd.timeZone))
+
+        event.properties.add(RecurrenceId(newDtStart, dtStart.timeZone))
     }
 
     private fun aggregateCalendar(l: Calendar, r: Calendar): Calendar {
@@ -145,9 +167,9 @@ class CalDavManager {
         return l
     }
 
-    private fun buildCalDAVCollection(href: String): CalDAVCollection {
+    private fun buildCalDAVCollection(href: String): CustomCalDAVCollection {
         val caldavUrl = URI(calDavBaseUri)
         val baseUri = "${caldavUrl.scheme}://${caldavUrl.authority}"
-        return CalDAVCollection("$baseUri$href")
+        return CustomCalDAVCollection("$baseUri$href")
     }
 }
