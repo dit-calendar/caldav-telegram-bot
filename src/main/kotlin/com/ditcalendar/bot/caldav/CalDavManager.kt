@@ -11,10 +11,9 @@ import com.github.caldav4j.util.GenerateQuery
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
+import net.fortuna.ical4j.model.*
 import net.fortuna.ical4j.model.Calendar
-import net.fortuna.ical4j.model.Component
-import net.fortuna.ical4j.model.DateTime
-import net.fortuna.ical4j.model.Property
+import net.fortuna.ical4j.model.Date
 import net.fortuna.ical4j.model.component.VEvent
 import net.fortuna.ical4j.model.property.*
 import org.apache.http.HttpResponse
@@ -30,6 +29,7 @@ import org.apache.jackrabbit.webdav.property.DavPropertyNameSet
 import java.net.URI
 import java.text.DateFormat
 import java.text.SimpleDateFormat
+import java.util.*
 
 const val telegramUserCalDavProperty: String = "X-TELEGRAM-USER"
 
@@ -83,10 +83,10 @@ class CalDavManager {
         val start = DateTime(df.parse("${startDate}T00:00"))
         val end = DateTime(df.parse("${endDate}T04:00"))
 
-        return findSubCalendarHref(subCalendarName).flatMap { getCalendarAndEvents(it, subCalendarName, start, end) }
+        return findSubCalendarHref(subCalendarName).flatMap { getCalendarAndEvents(it, subCalendarName, startDate, start, end) }
     }
 
-    private fun getCalendarAndEvents(href: String, subCalendarName: String, startDate: DateTime, endDate: DateTime): Result<Calendar, Exception> {
+    private fun getCalendarAndEvents(href: String, subCalendarName: String, start: String, startDate: DateTime, endDate: DateTime): Result<Calendar, Exception> {
         val gq = GenerateQuery()
         gq.setFilterComponent(Component.VEVENT)
         gq.setTimeRange(startDate, endDate)
@@ -101,8 +101,23 @@ class CalDavManager {
             val firstCalendar = calendars.first()
             firstCalendar.properties.add(Url(URI(href)))
             val cal = calendars.drop(1).fold(firstCalendar, ::aggregateCalendar)
+            val eventsToBeRemoved = collectRecurrentEventsToBeRemoved(cal, start.replace("-", ""))
+            cal.components.removeAll(eventsToBeRemoved)
             Result.success(cal)
         }
+    }
+
+    private fun collectRecurrentEventsToBeRemoved(cal: Calendar, searchedStartDate: String): List<VEvent> {
+        return cal.getComponents<VEvent>(Component.VEVENT).flatMap { collectRecurrentEventsToBeRemoved(cal, searchedStartDate, it.uid) }
+    }
+
+    private fun collectRecurrentEventsToBeRemoved(cal: Calendar, searchedStartDate: String, uuid: Uid): List<VEvent> {
+        val eventsWIthDuplicatedUUID = cal.getComponents<VEvent>(Component.VEVENT).filter {
+            event -> event.uid == uuid  }
+        if (eventsWIthDuplicatedUUID.size > 1) {
+            return eventsWIthDuplicatedUUID.filter { !it.startDate.value.startsWith(searchedStartDate) }
+        }
+        return listOf()
     }
 
     fun findEvent(href: String, eventUUID: String): Result<VEvent, Exception> {
