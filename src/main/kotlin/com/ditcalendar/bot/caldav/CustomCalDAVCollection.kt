@@ -43,6 +43,47 @@ class CustomCalDAVCollection(uri: String) : CalDAVCollection(uri) {
                 resource.resourceMetadata.eTag)
     }
 
+    /**
+     *  copy of updateMasterEvent
+     *
+     * @param httpClient the httpClient which will make the request
+     * @param vevent the vevent to update
+     * @param timezone The VTimeZone of the VEvent if it references one, otherwise null
+     * @throws CalDAV4JException on error
+     */
+    @Throws(CalDAV4JException::class)
+    fun updateOriginalEvent(httpClient: HttpClient, vevent: VEvent, timezone: VTimeZone?) {
+        val uid = ICalendarUtils.getUIDValue(vevent)
+        val resource = getCalDAVResourceByUID(httpClient, Component.VEVENT, uid)
+        val calendar = resource.calendar
+
+        // let's find the master event first!
+        val originalVEvent = getOriginalRecurrentEvent(calendar, vevent)
+        calendar.components.remove(originalVEvent)
+        calendar.components.add(vevent)
+        if (timezone != null) {
+            val originalVTimeZone = ICalendarUtils.getTimezone(calendar)
+            if (originalVTimeZone != null) calendar.components.remove(originalVTimeZone)
+            calendar.components.add(timezone)
+        }
+        put(
+                httpClient,
+                calendar,
+                UrlUtils.stripHost(resource.resourceMetadata.href),
+                resource.resourceMetadata.eTag)
+    }
+
+    /**
+     * copy of getMasterEvent
+     *
+     * @param calendar Calendar from where the Master Event is supposed to be retrieved
+     * @param uid UID of the VEvent
+     * @return VEvent that does not have Recurrence ID
+     */
+    fun getOriginalRecurrentEvent(calendar: Calendar, vevent: VEvent): VEvent =
+            calendar.components.getComponents<VEvent>(Component.VEVENT)
+                    .first { vevent.uid == it.uid && it.recurrenceId == vevent.recurrenceId }
+
 
     /**
      * copy from CalDAVCollection

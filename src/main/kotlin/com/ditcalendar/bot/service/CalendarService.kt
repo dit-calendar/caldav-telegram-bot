@@ -38,7 +38,7 @@ class CalendarService(private val calDavManager: CalDavManager) {
         return if (postCalendarMetaInfo == null)
             Result.error(PostCalendarMetaInfoIsUnknownForAssignment())
         else calDavManager
-                .findEvent(postCalendarMetaInfo.uri, taskId)
+                .findEvent(postCalendarMetaInfo.uri, taskId, postCalendarMetaInfo.startDate.replace("-", ""))
                 .flatMap { oldTask ->
                     var who = oldTask.getTelegramUserCalDavProperty()
                     who = addUserToWho(who, telegramLink.telegramUserId.toString())
@@ -52,7 +52,7 @@ class CalendarService(private val calDavManager: CalDavManager) {
         return if (postCalendarMetaInfo == null)
             Result.error(PostCalendarMetaInfoIsUnknownForUnassignment())
         else calDavManager
-                .findEvent(postCalendarMetaInfo.uri, taskId)
+                .findEvent(postCalendarMetaInfo.uri, taskId, postCalendarMetaInfo.startDate.replace("-", ""))
                 .flatMap { oldTask ->
                     var who = oldTask.getTelegramUserCalDavProperty()
                     who = removeUserFromWho(who, telegramLink.telegramUserId.toString())
