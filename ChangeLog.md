@@ -1,3 +1,6 @@
+# v0.9.2
+* fix assignment for recurrent tasks
+
 # v0.9.1
 * fix md escape in calendar name
 
