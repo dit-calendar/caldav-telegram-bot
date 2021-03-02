@@ -6,18 +6,18 @@ import com.ditcalendar.bot.config.caldav_user_password
 import com.ditcalendar.bot.config.config
 import com.ditcalendar.bot.domain.data.NoEventsFound
 import com.ditcalendar.bot.domain.data.NoSubcalendarFound
-import com.github.caldav4j.CalDAVCollection
 import com.github.caldav4j.methods.CalDAV4JMethodFactory
 import com.github.caldav4j.util.GenerateQuery
+import com.github.caldav4j.util.ICalendarUtils
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import net.fortuna.ical4j.model.Calendar
 import net.fortuna.ical4j.model.Component
 import net.fortuna.ical4j.model.DateTime
+import net.fortuna.ical4j.model.Property
 import net.fortuna.ical4j.model.component.VEvent
-import net.fortuna.ical4j.model.property.Url
-import net.fortuna.ical4j.model.property.XProperty
+import net.fortuna.ical4j.model.property.*
 import org.apache.http.HttpResponse
 import org.apache.http.auth.AuthScope
 import org.apache.http.auth.UsernamePasswordCredentials
@@ -80,14 +80,14 @@ class CalDavManager {
         return Result.error(NoSubcalendarFound(subCalendarName))
     }
 
-    fun findSubcalendarAndEvents(subCalendarName: String, startDate: String, endDate: String): Result<Calendar, Exception> {
+    fun findSubCalendarAndEvents(subCalendarName: String, startDate: String, endDate: String): Result<Calendar, Exception> {
         val start = DateTime(df.parse("${startDate}T00:00"))
         val end = DateTime(df.parse("${endDate}T04:00"))
 
-        return findSubCalendarHref(subCalendarName).flatMap { getCalendarAndEvents(it, subCalendarName, start, end) }
+        return findSubCalendarHref(subCalendarName).flatMap { getCalendarAndEvents(it, subCalendarName, startDate, start, end) }
     }
 
-    private fun getCalendarAndEvents(href: String, subCalendarName: String, startDate: DateTime, endDate: DateTime): Result<Calendar, Exception> {
+    private fun getCalendarAndEvents(href: String, subCalendarName: String, start: String, startDate: DateTime, endDate: DateTime): Result<Calendar, Exception> {
         val gq = GenerateQuery()
         gq.setFilterComponent(Component.VEVENT)
         gq.setTimeRange(startDate, endDate)
@@ -102,11 +102,13 @@ class CalDavManager {
             val firstCalendar = calendars.first()
             firstCalendar.properties.add(Url(URI(href)))
             val cal = calendars.drop(1).fold(firstCalendar, ::aggregateCalendar)
+            val eventsToBeRemoved = cal.collectRecurrentEventsToBeRemoved(start.replace("-", ""))
+            cal.components.removeAll(eventsToBeRemoved)
             Result.success(cal)
         }
     }
 
-    fun findEvent(href: String, eventUUID: String): Result<VEvent, Exception> {
+    fun findEvent(href: String, eventUUID: String, searchedStartDate: String): Result<VEvent, Exception> {
         val gq = GenerateQuery()
         gq.setComponent(Component.VEVENT)
         val calClient = buildCalDAVCollection(href)
@@ -114,15 +116,61 @@ class CalDavManager {
 
         return if (calendar == null)
             Result.error(NoSubcalendarFound(href))
-        else
-            Result.success(calendar.getComponent(Component.VEVENT) as VEvent)
+        else {
+            Result.success(calendar.getRecurrentOrMasterEvent(searchedStartDate))
+        }
     }
 
-    fun updateEvent(href: String, event: VEvent, who: String): Result<VEvent, Exception> {
+    fun updateEvent(href: String, event: VEvent, who: String, startDate: String): Result<VEvent, Exception> {
         val calClient = buildCalDAVCollection(href)
         event.properties.removeAll { it.name == telegramUserCalDavProperty }
         event.properties.add(XProperty(telegramUserCalDavProperty, who))
-        return Result.of<Unit, Exception> { calClient.updateMasterEvent(httpclient, event, null) }.map { event }
+        val eventResult = Result.of<Unit, Exception> {
+            when {
+                // Event without scheduling
+                !ICalendarUtils.hasProperty(event, Property.RRULE) && !ICalendarUtils.hasProperty(event, Property.RECURRENCE_ID) ->
+                    calClient.updateMasterEvent(httpclient, event, null)
+                // Update existing recurrent event
+                ICalendarUtils.hasProperty(event, Property.RECURRENCE_ID) ->
+                    calClient.updateOriginalEvent(httpclient, event, null)
+                // Create new recurrent Event
+                else -> {
+                    updateScheduledEventProperties(event, startDate)
+                    calClient.addRecurrentEvent(httpclient, event, null)
+                }
+            }
+        }
+        return eventResult.map { event }
+
+    }
+
+    /**
+     * Parent of an recurrent Event, which we can recognize by RRULE, have to be created with same UUID as parent,
+     * but with another DTStart and DTEnd.
+     * https://icalevents.com/4437-correct-handling-of-uid-recurrence-id-sequence/
+     */
+    private fun updateScheduledEventProperties(event: VEvent, startDate: String) {
+        event.properties.remove(event.created)
+        event.properties.remove(event.dateStamp)
+        event.properties.add(Created())
+        event.properties.add(DtStamp())
+
+        event.properties.remove(event.getProperty(Property.RRULE))
+
+        event.properties.remove(event.getProperty(Property.SEQUENCE))
+        event.properties.add(Sequence())
+
+        val dtStart = event.getProperty<DtStart>(Property.DTSTART)
+        val newDtStart = dtStart.value.replaceBefore("T", startDate.replace("-", ""))
+        event.properties.remove(event.getProperty(Property.DTSTART))
+        event.properties.add(DtStart(newDtStart, dtStart.timeZone))
+
+        val dtEnd = event.getProperty<DtEnd>(Property.DTEND)
+        val newDtEnd = dtEnd.value.replaceBefore("T", startDate.replace("-", ""))
+        event.properties.remove(event.getProperty(Property.DTEND))
+        event.properties.add(DtEnd(newDtEnd, dtEnd.timeZone))
+
+        event.properties.add(RecurrenceId(newDtStart, dtStart.timeZone))
     }
 
     private fun aggregateCalendar(l: Calendar, r: Calendar): Calendar {
@@ -130,9 +178,36 @@ class CalDavManager {
         return l
     }
 
-    private fun buildCalDAVCollection(href: String): CalDAVCollection {
+    private fun buildCalDAVCollection(href: String): CustomCalDAVCollection {
         val caldavUrl = URI(calDavBaseUri)
         val baseUri = "${caldavUrl.scheme}://${caldavUrl.authority}"
-        return CalDAVCollection("$baseUri$href")
+        return CustomCalDAVCollection("$baseUri$href")
     }
+
+}
+
+private fun Calendar.getRecurrentOrMasterEvent(searchedStartDate: String): VEvent {
+    val events = this.getComponents<VEvent>(Component.VEVENT)
+            .filter { ICalendarUtils.hasProperty(it, Property.RRULE) || it.startDate.value.startsWith(searchedStartDate) }
+    return if (events.size > 1) {
+        events.first { it.recurrenceId != null && it.startDate.value.startsWith(searchedStartDate) }
+    } else
+        this.getComponent(Component.VEVENT) as VEvent
+}
+
+private fun Calendar.collectRecurrentEventsToBeRemoved(searchedStartDate: String): List<VEvent> {
+    return this.getComponents<VEvent>(Component.VEVENT)
+            .flatMap { collectRecurrentEventsToBeRemoved(searchedStartDate, it.uid) }
+}
+
+private fun Calendar.collectRecurrentEventsToBeRemoved(searchedStartDate: String, uuid: Uid): List<VEvent> {
+    val eventsWIthDuplicatedUUID = this.getComponents<VEvent>(Component.VEVENT).filter { event -> event.uid == uuid }
+    if (eventsWIthDuplicatedUUID.size <= 1)
+        return listOf()
+    val eventsToRemove = eventsWIthDuplicatedUUID
+            .filter { it.recurrenceId == null || !it.startDate.value.startsWith(searchedStartDate) }
+    if (eventsToRemove.size == eventsWIthDuplicatedUUID.size) {
+        return eventsToRemove.filter{!ICalendarUtils.hasProperty(it, Property.RRULE)}
+    }
+    return eventsToRemove
 }
