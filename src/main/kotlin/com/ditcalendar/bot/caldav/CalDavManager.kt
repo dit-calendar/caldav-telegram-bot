@@ -80,7 +80,7 @@ class CalDavManager {
         return Result.error(NoSubcalendarFound(subCalendarName))
     }
 
-    fun findSubcalendarAndEvents(subCalendarName: String, startDate: String, endDate: String): Result<Calendar, Exception> {
+    fun findSubCalendarAndEvents(subCalendarName: String, startDate: String, endDate: String): Result<Calendar, Exception> {
         val start = DateTime(df.parse("${startDate}T00:00"))
         val end = DateTime(df.parse("${endDate}T04:00"))
 
@@ -102,27 +102,10 @@ class CalDavManager {
             val firstCalendar = calendars.first()
             firstCalendar.properties.add(Url(URI(href)))
             val cal = calendars.drop(1).fold(firstCalendar, ::aggregateCalendar)
-            val eventsToBeRemoved = collectRecurrentEventsToBeRemoved(cal, start.replace("-", ""))
+            val eventsToBeRemoved = cal.collectRecurrentEventsToBeRemoved(start.replace("-", ""))
             cal.components.removeAll(eventsToBeRemoved)
             Result.success(cal)
         }
-    }
-
-    private fun collectRecurrentEventsToBeRemoved(cal: Calendar, searchedStartDate: String): List<VEvent> {
-        return cal.getComponents<VEvent>(Component.VEVENT).flatMap { collectRecurrentEventsToBeRemoved(cal, searchedStartDate, it.uid) }
-    }
-
-    private fun collectRecurrentEventsToBeRemoved(cal: Calendar, searchedStartDate: String, uuid: Uid): List<VEvent> {
-        val eventsWIthDuplicatedUUID = cal.getComponents<VEvent>(Component.VEVENT).filter { event -> event.uid == uuid }
-        if (eventsWIthDuplicatedUUID.size > 1) {
-            val eventsToRemove = eventsWIthDuplicatedUUID
-                    .filter { it.recurrenceId == null || !it.startDate.value.startsWith(searchedStartDate) }
-            if (eventsToRemove.size == eventsWIthDuplicatedUUID.size) {
-                return eventsToRemove.filter{!ICalendarUtils.hasProperty(it, Property.RRULE)}
-            }
-            return eventsToRemove
-        }
-        return listOf()
     }
 
     fun findEvent(href: String, eventUUID: String, searchedStartDate: String): Result<VEvent, Exception> {
@@ -134,12 +117,7 @@ class CalDavManager {
         return if (calendar == null)
             Result.error(NoSubcalendarFound(href))
         else {
-            val events = calendar.getComponents<VEvent>(Component.VEVENT)
-                    .filter { ICalendarUtils.hasProperty(it, Property.RRULE) || it.startDate.value.startsWith(searchedStartDate) }
-            if (events.size > 1) {
-                Result.success(events.first { it.recurrenceId != null && it.startDate.value.startsWith(searchedStartDate) })
-            } else
-                Result.success(calendar.getComponent(Component.VEVENT) as VEvent)
+            Result.success(calendar.getRecurrentOrMasterEvent(searchedStartDate))
         }
     }
 
@@ -148,16 +126,18 @@ class CalDavManager {
         event.properties.removeAll { it.name == telegramUserCalDavProperty }
         event.properties.add(XProperty(telegramUserCalDavProperty, who))
         val eventResult = Result.of<Unit, Exception> {
-            // Event without scheduling
-            if (!ICalendarUtils.hasProperty(event, Property.RRULE) && !ICalendarUtils.hasProperty(event, Property.RECURRENCE_ID))
-                calClient.updateMasterEvent(httpclient, event, null)
-            // Update existing recurrent event
-            else if (ICalendarUtils.hasProperty(event, Property.RECURRENCE_ID))
-                calClient.updateOriginalEvent(httpclient, event, null)
-            // Create new recurrent Event
-            else {
-                updateScheduledEventProperties(event, startDate)
-                calClient.addRecurrentEvent(httpclient, event, null)
+            when {
+                // Event without scheduling
+                !ICalendarUtils.hasProperty(event, Property.RRULE) && !ICalendarUtils.hasProperty(event, Property.RECURRENCE_ID) ->
+                    calClient.updateMasterEvent(httpclient, event, null)
+                // Update existing recurrent event
+                ICalendarUtils.hasProperty(event, Property.RECURRENCE_ID) ->
+                    calClient.updateOriginalEvent(httpclient, event, null)
+                // Create new recurrent Event
+                else -> {
+                    updateScheduledEventProperties(event, startDate)
+                    calClient.addRecurrentEvent(httpclient, event, null)
+                }
             }
         }
         return eventResult.map { event }
@@ -203,4 +183,31 @@ class CalDavManager {
         val baseUri = "${caldavUrl.scheme}://${caldavUrl.authority}"
         return CustomCalDAVCollection("$baseUri$href")
     }
+
+}
+
+private fun Calendar.getRecurrentOrMasterEvent(searchedStartDate: String): VEvent {
+    val events = this.getComponents<VEvent>(Component.VEVENT)
+            .filter { ICalendarUtils.hasProperty(it, Property.RRULE) || it.startDate.value.startsWith(searchedStartDate) }
+    return if (events.size > 1) {
+        events.first { it.recurrenceId != null && it.startDate.value.startsWith(searchedStartDate) }
+    } else
+        this.getComponent(Component.VEVENT) as VEvent
+}
+
+private fun Calendar.collectRecurrentEventsToBeRemoved(searchedStartDate: String): List<VEvent> {
+    return this.getComponents<VEvent>(Component.VEVENT)
+            .flatMap { collectRecurrentEventsToBeRemoved(searchedStartDate, it.uid) }
+}
+
+private fun Calendar.collectRecurrentEventsToBeRemoved(searchedStartDate: String, uuid: Uid): List<VEvent> {
+    val eventsWIthDuplicatedUUID = this.getComponents<VEvent>(Component.VEVENT).filter { event -> event.uid == uuid }
+    if (eventsWIthDuplicatedUUID.size <= 1)
+        return listOf()
+    val eventsToRemove = eventsWIthDuplicatedUUID
+            .filter { it.recurrenceId == null || !it.startDate.value.startsWith(searchedStartDate) }
+    if (eventsToRemove.size == eventsWIthDuplicatedUUID.size) {
+        return eventsToRemove.filter{!ICalendarUtils.hasProperty(it, Property.RRULE)}
+    }
+    return eventsToRemove
 }

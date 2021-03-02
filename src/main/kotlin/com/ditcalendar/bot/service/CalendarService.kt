@@ -16,7 +16,7 @@ import net.fortuna.ical4j.model.property.XProperty
 class CalendarService(private val calDavManager: CalDavManager) {
 
     fun getCalendarAndTask(subCalendarName: String, startDate: String, endDate: String, chatId: Long, messageId: Int): Result<CalendarDTO, Exception> =
-            calDavManager.findSubcalendarAndEvents(subCalendarName, startDate, endDate)
+            calDavManager.findSubCalendarAndEvents(subCalendarName, startDate, endDate)
                     .map {
                         val href = it.getProperty<Url>(Property.URL)
                         val postCalendarMetaInfo = findOrCreate(chatId, messageId, subCalendarName, startDate, endDate, href.value)
@@ -26,7 +26,7 @@ class CalendarService(private val calDavManager: CalDavManager) {
                     }
 
     fun getCalendarAndTask(subCalendarName: String, startDate: String, endDate: String, postCalendarMetaInfo: PostCalendarMetaInfo): Result<CalendarDTO, Exception> =
-            calDavManager.findSubcalendarAndEvents(subCalendarName, startDate, endDate)
+            calDavManager.findSubCalendarAndEvents(subCalendarName, startDate, endDate)
                     .map {
                         val tasks: List<VEvent> = it.components.getComponents(Component.VEVENT)
                         val constructor = { task: VEvent, t: TelegramLinks -> TelegramTaskForAssignment(task, t, postCalendarMetaInfo.id.value) }
