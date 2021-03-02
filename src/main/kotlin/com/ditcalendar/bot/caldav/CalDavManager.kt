@@ -135,6 +135,7 @@ class CalDavManager {
             Result.error(NoSubcalendarFound(href))
         else {
             val events = calendar.getComponents<VEvent>(Component.VEVENT)
+                    .filter { ICalendarUtils.hasProperty(it, Property.RRULE) || it.startDate.value.startsWith(searchedStartDate) }
             if (events.size > 1) {
                 Result.success(events.first { it.recurrenceId != null && it.startDate.value.startsWith(searchedStartDate) })
             } else
